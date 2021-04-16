@@ -20,14 +20,14 @@ player_info_template = [
 
 title = 'Age of Empires II DE - Multyplayer Ratings'
 
-t1p1_info = sg.Text('.' * 40, pad=((0,0),(0,0)), background_color='#000000', justification='right', font=('Arial', 12))
-t1p2_info = sg.Text('.' * 40, pad=((0,0),(0,0)), background_color='#000000', justification='right', font=('Arial', 12))
-t1p3_info = sg.Text('.' * 40, pad=((0,0),(0,0)), background_color='#000000', justification='right', font=('Arial', 12))
-t1p4_info = sg.Text('.' * 40, pad=((0,0),(0,0)), background_color='#000000', justification='right', font=('Arial', 12))
-t2p1_info = sg.Text('.' * 40, pad=((0,0),(0,0)), background_color='#000000', justification='left', font=('Arial', 12))
-t2p2_info = sg.Text('.' * 40, pad=((0,0),(0,0)), background_color='#000000', justification='left', font=('Arial', 12))
-t2p3_info = sg.Text('.' * 40, pad=((0,0),(0,0)), background_color='#000000', justification='left', font=('Arial', 12))
-t2p4_info = sg.Text('.' * 40, pad=((0,0),(0,0)), background_color='#000000', justification='left', font=('Arial', 12))
+t1p1_info = sg.Text('.' * 128, pad=((0,0),(0,0)), background_color='#000000', justification='right', font=('Arial', 12))
+t1p2_info = sg.Text('.' * 128, pad=((0,0),(0,0)), background_color='#000000', justification='right', font=('Arial', 12))
+t1p3_info = sg.Text('.' * 128, pad=((0,0),(0,0)), background_color='#000000', justification='right', font=('Arial', 12))
+t1p4_info = sg.Text('.' * 128, pad=((0,0),(0,0)), background_color='#000000', justification='right', font=('Arial', 12))
+t2p1_info = sg.Text('.' * 128, pad=((0,0),(0,0)), background_color='#000000', justification='left', font=('Arial', 12))
+t2p2_info = sg.Text('.' * 128, pad=((0,0),(0,0)), background_color='#000000', justification='left', font=('Arial', 12))
+t2p3_info = sg.Text('.' * 128, pad=((0,0),(0,0)), background_color='#000000', justification='left', font=('Arial', 12))
+t2p4_info = sg.Text('.' * 128, pad=((0,0),(0,0)), background_color='#000000', justification='left', font=('Arial', 12))
 
 team_players_info = [
     [
@@ -64,7 +64,7 @@ layout = [
     [
         sg.Column(team1_column, background_color='#000000', vertical_alignment='top', element_justification='right'),
         sg.VSeparator(),
-        sg.Column(team2_column, background_color='#000000', vertical_alignment='top', element_justification='right'),
+        sg.Column(team2_column, background_color='#000000', vertical_alignment='top', element_justification='left'),
     ]
 ]
 
@@ -171,7 +171,7 @@ if __name__ == '__main__':
                         keep_on_top=True,
                         grab_anywhere=True,
                         background_color='black',
-                        #transparent_color='black',
+                        transparent_color='black',
                         alpha_channel=1)
 
     threading.Thread(target=fetch_data, daemon=True).start()
