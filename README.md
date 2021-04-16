@@ -1,4 +1,4 @@
-# Age of Empires II DE - Multiplayer Ratings
+# Age of Empires II DE - Multiplayer Ratings Overlay
 
 ## Download
 
@@ -6,7 +6,7 @@ You can download the latest release from [here](https://github.com/Dooque/aoe2-d
 
 ## Introduction
 
-This tool shows the RM 1v1 ELO and RM TG ELO for all players in a multiplayer game.
+This is an overlay which shows on top of the screen the RM 1v1 ELO and RM TG ELO for all players in a multiplayer game.
 
 It currently works only for "Random Map" games.
 
