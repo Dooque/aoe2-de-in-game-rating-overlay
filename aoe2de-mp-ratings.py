@@ -99,7 +99,6 @@ location_file_lock = threading.Lock()
 window_location_lock = threading.Lock()
 
 def fetch_data(window):
-    first_time = True
 
     r = requests.get('https://aoe2.net/api/strings?game=aoe2de&language=en')
     strings = r.json()
@@ -205,15 +204,15 @@ def fetch_data(window):
                         text = team_players_text[team_number][player_numer][0]
                         color = team_players_text[team_number][player_numer][1]
                         team_players_info[team_number][player_numer].Update(value=text, text_color=color)
+
             window.refresh()
-            if first_time:
-                first_time = False
-            else:
-                c, y = get_last_window_location()
+            last_location = get_last_window_location()
+            if last_location != (None, None):
+                c, y = last_location
                 sx, sy = window.size
                 window.move(int(c - sx/2), y)
-            window.refresh()
             window.reappear()
+            window.refresh()
 
             window_location_lock.release()
 
@@ -228,9 +227,9 @@ def get_last_window_location():
         try:
             location = eval(location_file.read())
         except SyntaxError:
-            location = (0, 0)
+            location = (None, None)
     except FileNotFoundError:
-        location = (0, 0)
+        location = (None, None)
     location_file_lock.release()
 
     return location
