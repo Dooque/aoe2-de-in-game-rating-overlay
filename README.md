@@ -1,4 +1,4 @@
-# Age of Empires II DE - Multiplayer Ratings Overlay
+# Age of Empires II DE - Multiplayer Ratings In Game Overlay
 
 ## Download
 
@@ -6,11 +6,11 @@ You can download the latest release from [here](https://github.com/Dooque/aoe2-d
 
 ## Introduction
 
-This is an overlay which shows on top of the screen the RM 1v1 ELO and RM TG ELO for all players in a multiplayer game.
+This is an in game overlay which shows on top of the screen the RM 1v1 ELO and RM TG ELO for all players in a multiplayer game.
 
 It currently works only for "Random Map" games.
 
-You can drag the text anywhere in the in the screen.
+You can drag the text anywhere in the in the screen. The program will remeber the position in the screen for the next time.
 
 The 1v1 ELO is shown between *[ ]* and the TG ELO is shown between *( )*.
 
@@ -21,11 +21,13 @@ The 1v1 ELO is shown between *[ ]* and the TG ELO is shown between *( )*.
 
 The program requires no installation. Just extract the ZIP file and run the `aoe2de-mp-ratings.exe` file.
 
+> NOTE: It take a while to start the first time, be patient!
+
 The only required configuration you need is to write your [AoE2.net](https://aoe2.net) profile ID into the `AOE2NET_PROFILE_ID.txt` file.
 
 ### How to close the program?
 
-After have moved the text around the window and without click anywhere else press `Alt+F4`.
+Click on the window and press `Alt+F4`.
 
 ### How do I get my AoE2.net profile ID?
 
@@ -60,6 +62,8 @@ And that's it you can run the `aoe2de-mp-ratings.exe` file.
 4. Show the text with the "self (blue) / ally (yellow) / enemy (red)" color mode.
 5. Show extended player information when the mouse goes over the player name.
 6. Make configurable the refresh time.
+7. Add a "Loading" banner.
+8. Add a menu to close the program.
 
 ## CHANGELOG
 
@@ -68,7 +72,7 @@ And that's it you can run the `aoe2de-mp-ratings.exe` file.
 * Changed font size from 14 to 11.
 * Changed font type from Arial to Britannic Bold. 
 * Added text color for each player.
-* Window remembers the last position on the screen.
+* The window remembers the last position on the screen.
 
 ### v0.0.1
 
