@@ -99,6 +99,7 @@ location_file_lock = threading.Lock()
 window_location_lock = threading.Lock()
 
 def fetch_data(window):
+    first_time = True
 
     r = requests.get('https://aoe2.net/api/strings?game=aoe2de&language=en')
     strings = r.json()
@@ -205,9 +206,12 @@ def fetch_data(window):
                         color = team_players_text[team_number][player_numer][1]
                         team_players_info[team_number][player_numer].Update(value=text, text_color=color)
             window.refresh()
-            c, y = get_last_window_location()
-            sx, sy = window.size
-            window.move(int(c - sx/2), y)
+            if first_time:
+                first_time = False
+            else:
+                c, y = get_last_window_location()
+                sx, sy = window.size
+                window.move(int(c - sx/2), y)
             window.refresh()
             window.reappear()
 
@@ -252,8 +256,6 @@ def save_window_location(window):
 
 if __name__ == '__main__':
 
-    c, y = get_last_window_location()
-
     window = sg.Window( title,
                         layout,
                         no_titlebar=True,
@@ -264,6 +266,7 @@ if __name__ == '__main__':
                         alpha_channel=1 )
     window.finalize()
     window.disappear()
+    window.refresh()
 
     threading.Thread(target=fetch_data, daemon=True, args=(window,)).start()
     threading.Thread(target=save_window_location, daemon=True, args=(window,)).start()
