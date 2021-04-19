@@ -57,7 +57,6 @@ And that's it you can run the `aoe2de-mp-ratings.exe` file.
 
 1. Be able to change the text color, font and size from a configuration file.
 2. Be able to set a background with solid color from a configuration file.
-3. Show the text with the current color of each player in the game.
 4. Show the text with the "self (blue) / ally (yellow) / enemy (red)" color mode.
 5. Show extended player information when the mouse goes over the player name.
 6. Make configurable the refresh time.
