@@ -13,21 +13,47 @@ import time
 
 import PySimpleGUI as sg
 
+COLORS = {
+    1: '#7A7AFC', # blue
+    2: '#FD3434', # red
+    3: '#00ff00', # green
+    4: '#ffff00', # yellow
+    5: '#00fafa', # teal
+    6: '#ff00ff', # purple
+    7: '#bababa', # gary
+    8: '#ffA500', # orange
+}
+
 player_info_template = [
     '{name} ({tgelo}) [{elo}] P{numer}',
-    'P{numer} [{elo}] ({tgelo})  {name}'   
+    'P{numer} [{elo}] ({tgelo})  {name}'
 ]
 
 title = 'Age of Empires II DE - Multyplayer Ratings'
 
-t1p1_info = sg.Text('.' * 128, pad=((0,0),(0,0)), background_color='#000000', justification='right', font=('Arial', 12))
-t1p2_info = sg.Text('.' * 128, pad=((0,0),(0,0)), background_color='#000000', justification='right', font=('Arial', 12))
-t1p3_info = sg.Text('.' * 128, pad=((0,0),(0,0)), background_color='#000000', justification='right', font=('Arial', 12))
-t1p4_info = sg.Text('.' * 128, pad=((0,0),(0,0)), background_color='#000000', justification='right', font=('Arial', 12))
-t2p1_info = sg.Text('.' * 128, pad=((0,0),(0,0)), background_color='#000000', justification='left', font=('Arial', 12))
-t2p2_info = sg.Text('.' * 128, pad=((0,0),(0,0)), background_color='#000000', justification='left', font=('Arial', 12))
-t2p3_info = sg.Text('.' * 128, pad=((0,0),(0,0)), background_color='#000000', justification='left', font=('Arial', 12))
-t2p4_info = sg.Text('.' * 128, pad=((0,0),(0,0)), background_color='#000000', justification='left', font=('Arial', 12))
+t1p1_info = sg.Text(' ' * 100, pad=((0,0),(0,0)), background_color='#101010', justification='right', font=('Britannic Bold', 11))
+t1p2_info = sg.Text(' ' * 100, pad=((0,0),(0,0)), background_color='#101010', justification='right', font=('Britannic Bold', 11))
+t1p3_info = sg.Text(' ' * 100, pad=((0,0),(0,0)), background_color='#101010', justification='right', font=('Britannic Bold', 11))
+t1p4_info = sg.Text(' ' * 100, pad=((0,0),(0,0)), background_color='#101010', justification='right', font=('Britannic Bold', 11))
+t2p1_info = sg.Text(' ' * 100, pad=((0,0),(0,0)), background_color='#101010', justification='left', font=('Britannic Bold', 11))
+t2p2_info = sg.Text(' ' * 100, pad=((0,0),(0,0)), background_color='#101010', justification='left', font=('Britannic Bold', 11))
+t2p3_info = sg.Text(' ' * 100, pad=((0,0),(0,0)), background_color='#101010', justification='left', font=('Britannic Bold', 11))
+t2p4_info = sg.Text(' ' * 100, pad=((0,0),(0,0)), background_color='#101010', justification='left', font=('Britannic Bold', 11))
+
+team_players_text = [
+    [
+        None,
+        None,
+        None,
+        None,
+    ],
+    [
+        None,
+        None,
+        None,
+        None,
+    ],
+]
 
 team_players_info = [
     [
@@ -68,7 +94,11 @@ layout = [
     ]
 ]
 
-def fetch_data():
+event = threading.Event()
+location_file_lock = threading.Lock()
+window_location_lock = threading.Lock()
+
+def fetch_data(window):
 
     r = requests.get('https://aoe2.net/api/strings?game=aoe2de&language=en')
     strings = r.json()
@@ -84,6 +114,10 @@ def fetch_data():
         match = r.json()
 
         if match_uuid != match['last_match']['match_uuid']:
+            window_location_lock.acquire()
+            window.disappear()
+            window.refresh()
+
             match_uuid = match['last_match']['match_uuid']
             game_type_id = match['last_match']['game_type']
             game_type_string = [x['string'] for x in strings['game_type'] if x['id'] == game_type_id].pop()
@@ -102,6 +136,8 @@ def fetch_data():
             t2p3_info.Update(value='')
             t2p4_info.Update(value='')
 
+            team_players_text = [[None, None, None, None], [None, None, None, None]]
+
             team_number = 0
             for team in (players_team1, players_team2):
                 player_numer = 0
@@ -114,12 +150,12 @@ def fetch_data():
                     if civ:
                         civ = civ.pop()
                     else:
-                        civ = 'N/A'
+                        civ = 'None'
 
                     rating_1v1 = rating_1v1.json()
                     if (len(rating_1v1) == 0):
-                        games_1v1 = 'N/A  '
-                        rating_1v1 = {'rating':'N/A', 'num_wins':'N/A', 'num_losses':'N/A', 'streak':'N/A'}
+                        games_1v1 = 'None  '
+                        rating_1v1 = {'rating':'None', 'num_wins':'None', 'num_losses':'None', 'streak':'None'}
                     else:
                         rating_1v1 = rating_1v1.pop()
                         games_1v1 = str(rating_1v1['num_wins'] + rating_1v1['num_losses'])
@@ -135,8 +171,8 @@ def fetch_data():
 
                     rating_tg = rating_tg.json()
                     if (len(rating_tg) == 0):
-                        games_tg = 'N/A  '
-                        rating_tg = {'rating':'N/A', 'num_wins':'N/A', 'num_losses':'N/A', 'streak':'N/A'}
+                        games_tg = 'None  '
+                        rating_tg = {'rating':'None', 'num_wins':'None', 'num_losses':'None', 'streak':'None'}
                     else:
                         rating_tg = rating_tg.pop()
                         games_tg = str(rating_tg['num_wins'] + rating_tg['num_losses'])
@@ -157,24 +193,80 @@ def fetch_data():
                         elo=rating_1v1['rating'],
                     )
 
-                    team_players_info[team_number][player_numer].Update(value=text)
+                    team_players_text[team_number][player_numer] = (text, COLORS[player['color']])
 
                     player_numer += 1
                 team_number += 1
+
+            for team_number in [0, 1]:
+                for player_numer in [0, 1, 2, 3]:
+                    if team_players_text[team_number][player_numer] is not None:
+                        text = team_players_text[team_number][player_numer][0]
+                        color = team_players_text[team_number][player_numer][1]
+                        team_players_info[team_number][player_numer].Update(value=text, text_color=color)
+            window.refresh()
+            c, y = get_last_window_location()
+            sx, sy = window.size
+            window.move(int(c - sx/2), y)
+            window.refresh()
+            window.reappear()
+
+            window_location_lock.release()
+
+        event.set()
         time.sleep(10)
 
+def get_last_window_location():
+    location_file_lock.acquire()
+    try:
+        location_file_path = '{}\\aoe2de-mp-ratings_window-location.txt'.format(os.getenv('USERPROFILE'))
+        location_file = open(location_file_path, 'r')
+        try:
+            location = eval(location_file.read())
+        except SyntaxError:
+            location = (0, 0)
+    except FileNotFoundError:
+        location = (0, 0)
+    location_file_lock.release()
+
+    return location
+
+def save_window_location(window):
+    event.wait()
+    last_location = get_last_window_location()
+    while True:
+        window_location_lock.acquire()
+        x, y = window.CurrentLocation()
+        sx, sy = window.size
+        window_location_lock.release()
+        current_location = (x + sx/2, y)
+        if current_location != last_location:
+            last_location = current_location
+            location_file_path = '{}\\aoe2de-mp-ratings_window-location.txt'.format(os.getenv('USERPROFILE'))
+            location_file_lock.acquire()
+            location_file = open(location_file_path, 'w')
+            location_file.write(str(current_location))
+            location_file.close()
+            location_file_lock.release()
+        time.sleep(2)
+
 if __name__ == '__main__':
+
+    c, y = get_last_window_location()
 
     window = sg.Window( title,
                         layout,
                         no_titlebar=True,
                         keep_on_top=True,
                         grab_anywhere=True,
-                        background_color='black',
-                        transparent_color='black',
-                        alpha_channel=1)
+                        background_color='#000000',
+                        transparent_color='#000000',
+                        alpha_channel=1 )
+    window.finalize()
+    window.disappear()
 
-    threading.Thread(target=fetch_data, daemon=True).start()
+    threading.Thread(target=fetch_data, daemon=True, args=(window,)).start()
+    threading.Thread(target=save_window_location, daemon=True, args=(window,)).start()
 
     while True:
        event, values = window.read()

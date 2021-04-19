@@ -64,6 +64,13 @@ And that's it you can run the `aoe2de-mp-ratings.exe` file.
 
 ## CHANGELOG
 
+### v0.1.0
+
+* Changed font size from 14 to 11.
+* Changed font type from Arial to Britannic Bold. 
+* Added text color for each player.
+* Window remembers the last position on the screen.
+
 ### v0.0.1
 
 * Fetch the latest game of the AoE2.net profile ID saved in the `AOE2NET_PROFILE_ID.txt` file.
