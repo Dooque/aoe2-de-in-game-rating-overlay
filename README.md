@@ -1,12 +1,12 @@
-# Age of Empires II DE - Multiplayer Ratings In Game Overlay
+# Age of Empires II DE - In Game Rating Overlay
 
 ## Download
 
-You can download the latest release from [here](https://github.com/Dooque/aoe2-de-mp-ratings/archive/refs/tags/v0.1.0.zip).
+You can download the latest release from [here](https://github.com/Dooque/aoe2-de-in-game-rating-overlay/archive/refs/tags/v0.1.0.zip).
 
 ## Introduction
 
-This is an in game overlay which shows on top of the screen the RM 1v1 ELO and RM TG ELO for all players in a multiplayer game.
+This is an in game rating overlay which shows on top of the screen the RM 1v1 ELO and RM TG ELO for all players in a multiplayer game.
 
 It currently works only for "Random Map" games.
 
