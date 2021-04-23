@@ -93,7 +93,7 @@ layout = [
         sg.Column(team2_column, pad=((0,0),(0,0)), background_color='#000000', vertical_alignment='top', element_justification='left'),
     ],
     [
-        sg.Text(u'\u00A9' + ' by Dooque', pad=((0,0),(0,0)), background_color='#000000', justification='center', font=('Californian FB', 9))
+        sg.Text(u'\u00A9' + ' Dooque', pad=((0,0),(0,0)), background_color='#000000', justification='center', font=('Californian FB', 9))
     ]
 ]
 
