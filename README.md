@@ -19,9 +19,9 @@ The 1v1 ELO is shown between *[ ]* and the TG ELO is shown between *( )*.
 
 ## Installation & Configuration
 
-The program requires no installation. Just extract the ZIP file and run the `aoe2de-mp-ratings.exe` file.
+The program requires no installation. Just extract the ZIP file, configure your profile ID, install the font, and run the `aoe2de-mp-ratings.exe` file.
 
-> NOTE: It take a while to start the first time, be patient!
+You can install the font by double clicking on the `LiberationMono-Bold.ttf` file, and then press `Install` button. Once installed you can close the Font window.
 
 The only required configuration you need is to write your [AoE2.net](https://aoe2.net) profile ID into the `AOE2NET_PROFILE_ID.txt` file.
 
@@ -53,7 +53,7 @@ Then you will see the profile ID in the URL section:
 
 Copy and paste it into the `AOE2NET_PROFILE_ID.txt` file.
 
-And that's it you can run the `aoe2de-mp-ratings.exe` file.
+And that's it, you can now run the `aoe2de-mp-ratings.exe` file.
 
 ## What's next?
 
@@ -62,15 +62,22 @@ And that's it you can run the `aoe2de-mp-ratings.exe` file.
 4. Show the text with the "self (blue) / ally (yellow) / enemy (red)" color mode.
 5. Show extended player information when the mouse goes over the player name.
 6. Make configurable the refresh time.
-7. Add a "Loading" banner.
 8. Add a menu to close the program.
 
 ## CHANGELOG
 
+### v0.2.0 (WIP)
+
+* Changed font size from 11 to 9.
+* Changed font type from Britannic Bold to Liberation Mono Bold.
+* Added font file to be installed.
+* Added loading banner.
+* Added copyright.
+
 ### v0.1.0
 
 * Changed font size from 14 to 11.
-* Changed font type from Arial to Britannic Bold. 
+* Changed font type from Arial to Britannic Bold.
 * Added text color for each player.
 * The window remembers the last position on the screen.
 

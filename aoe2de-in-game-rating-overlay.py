@@ -89,14 +89,23 @@ team2_column = [
     [t2p4_info],
 ]
 
-layout = [
+layout_data = [
     [
         sg.Column(team1_column, pad=((0,0),(0,0)), background_color='#010101', vertical_alignment='top', element_justification='right'),
         sg.VSeparator(),
         sg.Column(team2_column, pad=((0,0),(0,0)), background_color='#010101', vertical_alignment='top', element_justification='left'),
     ],
     [
-        sg.Text(u'\u00A9' + ' Dooque', pad=((0,0),(0,0)), background_color='#010101', justification='center', font=('Arial', 7))
+        sg.Text(u'\u00A9' + ' Dooque', pad=((0,0),(0,0)), background_color='#000000', justification='center', font=('Arial', 7))
+    ]
+]
+
+layout_loading = [
+    [
+        sg.Text('Loading game information...', pad=((0,0),(0,0)), background_color='#000000', justification='center', font=(FONT_TYPE, 14))
+    ],
+    [
+        sg.Text(u'\u00A9' + ' Dooque', pad=((0,0),(0,0)), background_color='#000000', justification='center', font=('Arial', 7))
     ]
 ]
 
@@ -104,7 +113,7 @@ event = threading.Event()
 location_file_lock = threading.Lock()
 window_location_lock = threading.Lock()
 
-def fetch_data(window):
+def fetch_data(window_data, window_loading):
 
     r = requests.get('https://aoe2.net/api/strings?game=aoe2de&language=en')
     strings = r.json()
@@ -121,8 +130,10 @@ def fetch_data(window):
 
         if match_uuid != match['last_match']['match_uuid']:
             window_location_lock.acquire()
-            window.disappear()
-            window.refresh()
+            window_data.disappear()
+            window_data.refresh()
+            window_loading.reappear()
+            window_loading.refresh()
 
             match_uuid = match['last_match']['match_uuid']
             game_type_id = match['last_match']['game_type']
@@ -217,14 +228,16 @@ def fetch_data(window):
                             text = text + ' ' * (max_text_size - len(text))
                         team_players_info[team_number][player_numer].Update(value=text, text_color=color)
 
-            window.refresh()
+            window_data.refresh()
             last_location = get_last_window_location()
             if last_location != (None, None):
                 c, y = last_location
-                sx, sy = window.size
-                window.move(int(c - sx/2), y)
-            window.reappear()
-            window.refresh()
+                sx, sy = window_data.size
+                window_data.move(int(c - sx/2), y)
+            window_loading.disappear()
+            window_loading.refresh()
+            window_data.reappear()
+            window_data.refresh()
 
             window_location_lock.release()
 
@@ -246,13 +259,13 @@ def get_last_window_location():
 
     return location
 
-def save_window_location(window):
+def save_window_location(window_data):
     event.wait()
     last_location = get_last_window_location()
     while True:
         window_location_lock.acquire()
-        x, y = window.CurrentLocation()
-        sx, sy = window.size
+        x, y = window_data.CurrentLocation()
+        sx, sy = window_data.size
         window_location_lock.release()
         current_location = (x + sx/2, y)
         if current_location != last_location:
@@ -266,25 +279,46 @@ def save_window_location(window):
         time.sleep(2)
 
 if __name__ == '__main__':
-    window = sg.Window( title,
-                        layout,
-                        no_titlebar=True,
-                        keep_on_top=True,
-                        grab_anywhere=True,
-                        background_color='#010101',
-                        transparent_color='#010101',
-                        alpha_channel=1,
-                        element_justification='center' )
-    window.finalize()
-    window.disappear()
-    window.refresh()
 
-    threading.Thread(target=fetch_data, daemon=True, args=(window,)).start()
-    threading.Thread(target=save_window_location, daemon=True, args=(window,)).start()
+    window_loading = sg.Window( title,
+                                layout_loading,
+                                no_titlebar=True,
+                                keep_on_top=True,
+                                grab_anywhere=True,
+                                background_color='#010101',
+                                transparent_color='#010101',
+                                alpha_channel=1,
+                                element_justification='center',
+                                location = (None, None),)
+    window_loading.finalize()
+    last_location = get_last_window_location()
+    if last_location != (None, None):
+        c, y = last_location
+        sx, sy = window_loading.size
+        window_loading.move(int(c - sx/2), y)
+        window_loading.refresh()
+
+    window_data = sg.Window(    title,
+                                layout_data,
+                                no_titlebar=True,
+                                keep_on_top=True,
+                                grab_anywhere=True,
+                                background_color='#010101',
+                                transparent_color='#010101',
+                                alpha_channel=1,
+                                element_justification='center' )
+    window_data.finalize()
+    window_data.disappear()
+    window_data.refresh()
+
+    threading.Thread(target=fetch_data, daemon=True, args=(window_data, window_loading)).start()
+    threading.Thread(target=save_window_location, daemon=True, args=(window_data,)).start()
 
     while True:
-       event, values = window.read()
-       if event in (sg.WIN_CLOSED, 'Exit'):
+       event_data, values_data = window_data.read(500)
+       event_loading, values_loadinga = window_loading.read(500)
+       if event_data in (sg.WIN_CLOSED, 'Exit') or event_loading in (sg.WIN_CLOSED, 'Exit'):
             break
 
-    window.close()
+    window_data.close()
+    window_loading.close()
