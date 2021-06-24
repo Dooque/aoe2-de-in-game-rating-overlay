@@ -34,14 +34,14 @@ player_info_template = [
 
 title = 'Age of Empires II DE - Multyplayer Ratings'
 
-t1p1_info = sg.Text(' ' * 100, pad=((0,0),(0,0)), background_color='#010101', justification='right', font=(FONT_TYPE, FONT_SIZE))
-t1p2_info = sg.Text(' ' * 100, pad=((0,0),(0,0)), background_color='#010101', justification='right', font=(FONT_TYPE, FONT_SIZE))
-t1p3_info = sg.Text(' ' * 100, pad=((0,0),(0,0)), background_color='#010101', justification='right', font=(FONT_TYPE, FONT_SIZE))
-t1p4_info = sg.Text(' ' * 100, pad=((0,0),(0,0)), background_color='#010101', justification='right', font=(FONT_TYPE, FONT_SIZE))
-t2p1_info = sg.Text(' ' * 100, pad=((0,0),(0,0)), background_color='#010101', justification='left', font=(FONT_TYPE, FONT_SIZE))
-t2p2_info = sg.Text(' ' * 100, pad=((0,0),(0,0)), background_color='#010101', justification='left', font=(FONT_TYPE, FONT_SIZE))
-t2p3_info = sg.Text(' ' * 100, pad=((0,0),(0,0)), background_color='#010101', justification='left', font=(FONT_TYPE, FONT_SIZE))
-t2p4_info = sg.Text(' ' * 100, pad=((0,0),(0,0)), background_color='#010101', justification='left', font=(FONT_TYPE, FONT_SIZE))
+t1p1_info = sg.Text(' ' * 100, pad=((0,0),(0,0)), background_color='#000000', justification='right', font=(FONT_TYPE, FONT_SIZE))
+t1p2_info = sg.Text(' ' * 100, pad=((0,0),(0,0)), background_color='#000000', justification='right', font=(FONT_TYPE, FONT_SIZE))
+t1p3_info = sg.Text(' ' * 100, pad=((0,0),(0,0)), background_color='#000000', justification='right', font=(FONT_TYPE, FONT_SIZE))
+t1p4_info = sg.Text(' ' * 100, pad=((0,0),(0,0)), background_color='#000000', justification='right', font=(FONT_TYPE, FONT_SIZE))
+t2p1_info = sg.Text(' ' * 100, pad=((0,0),(0,0)), background_color='#000000', justification='left', font=(FONT_TYPE, FONT_SIZE))
+t2p2_info = sg.Text(' ' * 100, pad=((0,0),(0,0)), background_color='#000000', justification='left', font=(FONT_TYPE, FONT_SIZE))
+t2p3_info = sg.Text(' ' * 100, pad=((0,0),(0,0)), background_color='#000000', justification='left', font=(FONT_TYPE, FONT_SIZE))
+t2p4_info = sg.Text(' ' * 100, pad=((0,0),(0,0)), background_color='#000000', justification='left', font=(FONT_TYPE, FONT_SIZE))
 
 team_players_text = [
     [
@@ -91,12 +91,12 @@ team2_column = [
 
 layout = [
     [
-        sg.Column(team1_column, pad=((0,0),(0,0)), background_color='#000000', vertical_alignment='top', element_justification='right'),
+        sg.Column(team1_column, pad=((0,0),(0,0)), background_color='#010101', vertical_alignment='top', element_justification='right'),
         sg.VSeparator(),
-        sg.Column(team2_column, pad=((0,0),(0,0)), background_color='#000000', vertical_alignment='top', element_justification='left'),
+        sg.Column(team2_column, pad=((0,0),(0,0)), background_color='#010101', vertical_alignment='top', element_justification='left'),
     ],
     [
-        sg.Text(u'\u00A9' + ' Dooque', pad=((0,0),(0,0)), background_color='#000000', justification='center', font=('Arial', 7))
+        sg.Text(u'\u00A9' + ' Dooque', pad=((0,0),(0,0)), background_color='#010101', justification='center', font=('Arial', 7))
     ]
 ]
 
@@ -271,8 +271,8 @@ if __name__ == '__main__':
                         no_titlebar=True,
                         keep_on_top=True,
                         grab_anywhere=True,
-                        background_color='#000000',
-                        transparent_color='#000000',
+                        background_color='#010101',
+                        transparent_color='#010101',
                         alpha_channel=1,
                         element_justification='center' )
     window.finalize()
