@@ -10,54 +10,11 @@ import requests
 import sys
 import threading
 import time
-import shutil
-import ctypes
-from ctypes import wintypes
 
 import PySimpleGUI as sg
 
-try:
-    import winreg
-except ImportError:
-    import _winreg as winreg
-
-user32 = ctypes.WinDLL('user32', use_last_error=True)
-gdi32 = ctypes.WinDLL('gdi32', use_last_error=True)
-
-FONTS_REG_PATH = r'Software\Microsoft\Windows NT\CurrentVersion\Fonts'
-
-HWND_BROADCAST   = 0xFFFF
-SMTO_ABORTIFHUNG = 0x0002
-WM_FONTCHANGE    = 0x001D
-GFRI_DESCRIPTION = 1
-GFRI_ISTRUETYPE  = 3
-
-if not hasattr(wintypes, 'LPDWORD'):
-    wintypes.LPDWORD = ctypes.POINTER(wintypes.DWORD)
-
-user32.SendMessageTimeoutW.restype = wintypes.LPVOID
-user32.SendMessageTimeoutW.argtypes = (
-    wintypes.HWND,   # hWnd
-    wintypes.UINT,   # Msg
-    wintypes.LPVOID, # wParam
-    wintypes.LPVOID, # lParam
-    wintypes.UINT,   # fuFlags
-    wintypes.UINT,   # uTimeout
-    wintypes.LPVOID) # lpdwResult
-
-gdi32.AddFontResourceW.argtypes = (
-    wintypes.LPCWSTR,) # lpszFilename
-
-# http://www.undocprint.org/winspool/getfontresourceinfo
-gdi32.GetFontResourceInfoW.argtypes = (
-    wintypes.LPCWSTR, # lpszFilename
-    wintypes.LPDWORD, # cbBuffer
-    wintypes.LPVOID,  # lpBuffer
-    wintypes.DWORD)   # dwQueryType
-
-FONT_TYPE = 'Source Code Pro Black'
-#FONT_TYPE = 'Arial'
-FONT_SIZE = 11
+FONT_TYPE = 'Liberation Mono Bold'
+FONT_SIZE = 9
 
 COLORS = {
     1: '#7A7AFC', # blue
@@ -139,7 +96,7 @@ layout = [
         sg.Column(team2_column, pad=((0,0),(0,0)), background_color='#000000', vertical_alignment='top', element_justification='left'),
     ],
     [
-        sg.Text(u'\u00A9' + ' Dooque', pad=((0,0),(0,0)), background_color='#000000', justification='center', font=('Californian FB', 9))
+        sg.Text(u'\u00A9' + ' Dooque', pad=((0,0),(0,0)), background_color='#000000', justification='center', font=('Arial', 7))
     ]
 ]
 
@@ -308,71 +265,26 @@ def save_window_location(window):
             location_file_lock.release()
         time.sleep(2)
 
-def install_font(src_path):
-    # copy the font to the Windows Fonts folder
-    dst_path = os.path.join(os.environ['SystemRoot'], 'Fonts',
-                            os.path.basename(src_path))
-    shutil.copy(src_path, dst_path)
-    # load the font in the current session
-    if not gdi32.AddFontResourceW(dst_path):
-        os.remove(dst_path)
-        raise WindowsError('AddFontResource failed to load "%s"' % src_path)
-    # notify running programs
-    user32.SendMessageTimeoutW(HWND_BROADCAST, WM_FONTCHANGE, 0, 0,
-                               SMTO_ABORTIFHUNG, 1000, None)
-    # store the fontname/filename in the registry
-    filename = os.path.basename(dst_path)
-    fontname = os.path.splitext(filename)[0]
-    # try to get the font's real name
-    cb = wintypes.DWORD()
-    if gdi32.GetFontResourceInfoW(filename, ctypes.byref(cb), None,
-                                  GFRI_DESCRIPTION):
-        buf = (ctypes.c_wchar * cb.value)()
-        if gdi32.GetFontResourceInfoW(filename, ctypes.byref(cb), buf,
-                                      GFRI_DESCRIPTION):
-            fontname = buf.value
-    is_truetype = wintypes.BOOL()
-    cb.value = ctypes.sizeof(is_truetype)
-    gdi32.GetFontResourceInfoW(filename, ctypes.byref(cb),
-        ctypes.byref(is_truetype), GFRI_ISTRUETYPE)
-    if is_truetype:
-        fontname += ' (TrueType)'
-    with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, FONTS_REG_PATH, 0,
-                        winreg.KEY_SET_VALUE) as key:
-        winreg.SetValueEx(key, fontname, 0, winreg.REG_SZ, filename)
-
-def is_admin():
-    try:
-        return ctypes.windll.shell32.IsUserAnAdmin()
-    except:
-        return False
-
 if __name__ == '__main__':
-    if is_admin():
-        install_font('./SourceCodePro-Black.ttf')
+    window = sg.Window( title,
+                        layout,
+                        no_titlebar=True,
+                        keep_on_top=True,
+                        grab_anywhere=True,
+                        background_color='#000000',
+                        transparent_color='#000000',
+                        alpha_channel=1,
+                        element_justification='center' )
+    window.finalize()
+    window.disappear()
+    window.refresh()
 
-        window = sg.Window( title,
-                            layout,
-                            no_titlebar=True,
-                            keep_on_top=True,
-                            grab_anywhere=True,
-                            background_color='#000000',
-                            transparent_color='#000000',
-                            alpha_channel=1,
-                            element_justification='center' )
-        window.finalize()
-        window.disappear()
-        window.refresh()
+    threading.Thread(target=fetch_data, daemon=True, args=(window,)).start()
+    threading.Thread(target=save_window_location, daemon=True, args=(window,)).start()
 
-        threading.Thread(target=fetch_data, daemon=True, args=(window,)).start()
-        threading.Thread(target=save_window_location, daemon=True, args=(window,)).start()
+    while True:
+       event, values = window.read()
+       if event in (sg.WIN_CLOSED, 'Exit'):
+            break
 
-        while True:
-           event, values = window.read()
-           if event in (sg.WIN_CLOSED, 'Exit'):
-                break
-
-        window.close()
-    else:
-        # Re-run the program with admin rights
-        ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
+    window.close()
