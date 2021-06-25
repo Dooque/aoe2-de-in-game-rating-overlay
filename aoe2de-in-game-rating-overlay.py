@@ -14,7 +14,7 @@ import time
 import PySimpleGUI as sg
 
 FONT_TYPE = 'Liberation Mono Bold'
-FONT_SIZE = 9
+FONT_SIZE = 10
 
 COLORS = {
     1: '#7A7AFC', # blue
@@ -96,7 +96,7 @@ layout_data = [
         sg.Column(team2_column, pad=((0,0),(0,0)), background_color='#010101', vertical_alignment='top', element_justification='left'),
     ],
     [
-        sg.Text(u'\u00A9' + ' Dooque', pad=((0,0),(0,0)), background_color='#000000', justification='center', font=('Arial', 7))
+        sg.Text(u'\u00A9' + ' Dooque', pad=((0,0),(0,0)), background_color='#000000', justification='center', font=('Arial', 8))
     ]
 ]
 
@@ -105,11 +105,12 @@ layout_loading = [
         sg.Text('Loading game information...', pad=((0,0),(0,0)), background_color='#000000', justification='center', font=(FONT_TYPE, 14))
     ],
     [
-        sg.Text(u'\u00A9' + ' Dooque', pad=((0,0),(0,0)), background_color='#000000', justification='center', font=('Arial', 7))
+        sg.Text(u'\u00A9' + ' Dooque', pad=((0,0),(0,0)), background_color='#000000', justification='center', font=('Arial', 8))
     ]
 ]
 
 event = threading.Event()
+event_refresh = threading.Event()
 location_file_lock = threading.Lock()
 window_location_lock = threading.Lock()
 
@@ -242,7 +243,7 @@ def fetch_data(window_data, window_loading):
             window_location_lock.release()
 
         event.set()
-        time.sleep(10)
+        event_refresh.wait(10)
 
 def get_last_window_location():
     location_file_lock.acquire()
@@ -278,6 +279,7 @@ def save_window_location(window_data):
             location_file_lock.release()
         time.sleep(2)
 
+
 if __name__ == '__main__':
 
     window_loading = sg.Window( title,
@@ -289,6 +291,7 @@ if __name__ == '__main__':
                                 transparent_color='#010101',
                                 alpha_channel=1,
                                 element_justification='center',
+                                right_click_menu=['menu', ['Exit',]],
                                 location = (None, None),)
     window_loading.finalize()
     last_location = get_last_window_location()
@@ -306,7 +309,8 @@ if __name__ == '__main__':
                                 background_color='#010101',
                                 transparent_color='#010101',
                                 alpha_channel=1,
-                                element_justification='center' )
+                                element_justification='center',
+                                right_click_menu=['menu', ['Refresh now...', 'Exit',]], )
     window_data.finalize()
     window_data.disappear()
     window_data.refresh()
@@ -315,10 +319,12 @@ if __name__ == '__main__':
     threading.Thread(target=save_window_location, daemon=True, args=(window_data,)).start()
 
     while True:
-       event_data, values_data = window_data.read(500)
-       event_loading, values_loadinga = window_loading.read(500)
-       if event_data in (sg.WIN_CLOSED, 'Exit') or event_loading in (sg.WIN_CLOSED, 'Exit'):
+        event_data, values_data = window_data.read(500)
+        event_loading, values_loadinga = window_loading.read(500)
+        if event_data in (sg.WIN_CLOSED, 'Exit') or event_loading in (sg.WIN_CLOSED, 'Exit'):
             break
+        if event_data == 'Refresh now...':
+            event_refresh.set()
 
     window_data.close()
     window_loading.close()
