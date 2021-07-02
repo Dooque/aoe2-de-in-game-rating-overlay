@@ -187,15 +187,28 @@ class InGameRatingOverlay():
         self._loading_information_window_menu = ['menu', ['Exit',]]
         self._loading_information_window = None
 
-        self._main_window_last_location = self._get_last_window_location()
+        self._main_window_last_location = self._get_last_windows_location()['main_window']
         self._main_window_columns = [[], []]
         self._main_window_layout = None
-        self._main_window_menu = ['menu', ['Refresh now...', 'Exit']]
+        self._main_window_menu = ['menu', ['Refresh', 'Minimize', '---', 'Exit']]
         self._main_window = None
         self._update_main_window = False
 
+        self._minimized_window = None
+        self._minimized_window_last_location = self._get_last_windows_location()['minimized_window']
+        self._minimized_window_menu = ['menu', ['Maximize', '---', 'Exit']]
+        self._minimized_window_layout = [
+            [
+                sg.Text('Ratings', pad=NO_PADDING, background_color=TEXT_BG_COLOR, justification='center', font=(FONT_TYPE, 14))
+            ],
+            [
+                self._get_copyright_text()
+            ]
+        ]
+
     def run(self):
         self._create_loading_information_window()
+        self._create_minimized_window()
 
         print('[Thread-0] Starting "update_game_information" thread.')
         self._update_game_information_thread = threading.Thread(target=self._update_game_information)
@@ -209,20 +222,41 @@ class InGameRatingOverlay():
             self._loading_information_window.refresh()
 
             if self._main_window is not None:
-                e1, v1 = self._main_window.read(100)
+                e1, v1 = self._main_window.read(50)
             else:
                 e1, v1 = ('no-event', [])
 
-            e2, v2 = self._loading_information_window.read(100)
+            e2, v2 = self._loading_information_window.read(50)
+            e3, v3 = self._minimized_window.read(50)
 
-            if e1 in (sg.WIN_CLOSED, 'Exit') or e2 in (sg.WIN_CLOSED, 'Exit'):
+            if any(True for x in (e1, e2, e3) if x in (sg.WIN_CLOSED, 'Exit')):
                 print('[Thread-0] finish = True')
                 self._finish = True
                 self._event_refresh_game_information.set()
 
-            if e1 == 'Refresh now...':
+            if e1 == 'Refresh':
                 print('[Thread-0] Evenet: "Refresh now" generated.')
                 self._event_refresh_game_information.set()
+
+            if e1 == 'Minimize':
+                self._main_window.disappear()
+                self._main_window.refresh()
+                if self._minimized_window_last_location != (None, None):
+                    c, y = self._minimized_window_last_location
+                    sx, sy = self._minimized_window.size
+                    self._minimized_window.move(int(c - sx/2), y)
+                self._minimized_window.reappear()
+                self._minimized_window.refresh()
+
+            if e3 == 'Maximize':
+                self._minimized_window.disappear()
+                self._minimized_window.refresh()
+                if self._main_window_last_location != (None, None):
+                    c, y = self._main_window_last_location
+                    sx, sy = self._main_window.size
+                    self._main_window.move(int(c - sx/2), y)
+                self._main_window.reappear()
+                self._main_window.refresh()
 
             self._save_windows_location()
 
@@ -314,6 +348,24 @@ class InGameRatingOverlay():
         self._main_window.refresh()
         print('[Thread-0] Main window created!')
 
+    def _create_minimized_window(self):
+        print('[Thread-0] Creating minimized window...')
+        self._minimized_window = sg.Window(
+            None,
+            self._minimized_window_layout,
+            no_titlebar=True,
+            keep_on_top=True,
+            grab_anywhere=True,
+            background_color=BG_COLOR_INVISIBLE,
+            transparent_color=BG_COLOR_INVISIBLE,
+            alpha_channel=1,
+            element_justification='center',
+            right_click_menu=self._minimized_window_menu
+        )
+        self._minimized_window.finalize()
+        self._minimized_window.disappear()
+        print('[Thread-0] Minimized window created!')
+
     def _update_main_window_layout(self):
         print('[Thread-0] Updating main window layout...')
         self._main_window_layout = [
@@ -327,18 +379,20 @@ class InGameRatingOverlay():
             ]
         ]
 
-    def _get_last_window_location(self):
+    def _get_last_windows_location(self):
         try:
             location_file_path = WINDOW_LOCATION_FILE.format(os.getenv('USERPROFILE'))
             location_file = open(location_file_path, 'r')
             try:
-                location = tuple(map(int, location_file.read().split(',')))
+                main_window_location = tuple(map(int, location_file.readline().split(',')))
+                minimized_window_location = tuple(map(int, location_file.readline().split(',')))
+                location = {'main_window':main_window_location, 'minimized_window':minimized_window_location}
             except:
-                location = (None, None)
+                location = {'main_window':(None, None), 'minimized_window':(None, None)}
         except FileNotFoundError:
-            location = (None, None)
+            location = {'main_window':(None, None), 'minimized_window':(None, None)}
 
-        print('[Thread-0] Getting last window location:', location)
+        print('[Thread-0] Getting last windows location:', location)
 
         return location
 
@@ -349,13 +403,16 @@ class InGameRatingOverlay():
         else:
             x, y = self._loading_information_window.CurrentLocation()
             sx, sy = self._loading_information_window.size
-        current_location = (int(x + sx/2), int(y))
-        if current_location != self._main_window_last_location:
-            print('[Thread-0] Saving new window location:', current_location)
-            self._main_window_last_location = current_location
+        main_current_location = (int(x + sx/2), int(y))
+        minimized_current_location = self._minimized_window.CurrentLocation()
+        if (main_current_location != self._main_window_last_location) or (minimized_current_location != self._minimized_window_last_location):
+            print('[Thread-0] Saving new window location:', main_current_location)
+            self._main_window_last_location = main_current_location
+            self._minimized_window_last_location = minimized_current_location
             location_file_path = WINDOW_LOCATION_FILE.format(os.getenv('USERPROFILE'))
             location_file = open(location_file_path, 'w')
-            location_file.write(str(int(current_location[0])) + ',' + str(int(current_location[1])))
+            location_file.write(str(int(main_current_location[0])) + ',' + str(int(main_current_location[1])) + '\n')
+            location_file.write(str(int(minimized_current_location[0])) + ',' + str(int(minimized_current_location[1])))
             location_file.close()
 
     def _update_game_information(self):
