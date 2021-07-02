@@ -37,7 +37,7 @@ COPYRIGHT_TEXT = u'\u00A9' + ' Dooque'
 
 REFRESH_TIMEOUT = 10 # Seconds
 
-NO_DATA_STRING = '-----'
+NO_DATA_STRING = '----'
 
 MAX_NUMBER_OF_PLAYERS = 8
 
@@ -78,14 +78,21 @@ COLOR_STRINGS = {
 
 class Rating():
 
-    def __init__(self, rating):
-        self.rating = rating["rating"]
-        self.num_wins = rating["num_wins"]
-        self.num_losses = rating["num_losses"]
-        self.streak = rating["streak"]
-        self.games = self.num_wins + self.num_losses
-        self.win_ratio = self.num_wins / self.games
-        self.losses_ratio = self.num_losses / self.games
+    def __init__(self, rating=None):
+        if rating is not None:
+            self.rating = rating["rating"]
+            self.num_wins = rating["num_wins"]
+            self.num_losses = rating["num_losses"]
+            self.streak = rating["streak"]
+            self.games = self.num_wins + self.num_losses
+            self.win_ratio = self.num_wins / self.games
+        else:
+            self.rating = 0
+            self.num_wins = 0
+            self.num_losses = 0
+            self.streak = 0
+            self.games = 0
+            self.win_ratio = 0
 
 
 class Player():
@@ -102,15 +109,30 @@ class Player():
         civ = [ x['string'] for x in strings['civ'] if x['id'] == player['civ'] ]
         self.civ = civ.pop() if civ else NO_DATA_STRING
 
+        if self.name is None:
+            self.name = 'IA ' + self.civ
+
     def fetch_rating_information(self):
-        print('[Thread] Fetching 1v1 rating information for player {}'.format(self.name))
-        rating_1v1 = requests.get(AOE2NET_URL + 'player/ratinghistory?game=aoe2de&leaderboard_id=3&count=1&profile_id={}'.format(self.profile_id)).json()
-        self.rating_1v1 = Rating(rating_1v1[0])
+        print('[Thread-1] Fetching 1v1 rating information for player {}'.format(self.name))
+        if self.profile_id is not None:
+            rating_1v1 = requests.get(AOE2NET_URL + 'player/ratinghistory?game=aoe2de&leaderboard_id=3&count=1&profile_id={}'.format(self.profile_id)).json()
+            if rating_1v1:
+                self.rating_1v1 = Rating(rating_1v1[0])
+            else:
+                self.rating_1v1 = Rating()
+        else:
+            self.rating_1v1 = Rating()
         loading_progress['current'] += 1
 
-        print('[Thread] Fetching TG rating information for player {}'.format(self.name))
-        rating_tg = requests.get(AOE2NET_URL + 'player/ratinghistory?game=aoe2de&leaderboard_id=4&count=1&profile_id={}'.format(self.profile_id)).json()
-        self.rating_tg = Rating(rating_tg[0])
+        print('[Thread-1] Fetching TG rating information for player {}'.format(self.name))
+        if self.profile_id is not None:
+            rating_tg = requests.get(AOE2NET_URL + 'player/ratinghistory?game=aoe2de&leaderboard_id=4&count=1&profile_id={}'.format(self.profile_id)).json()
+            if rating_tg:
+                self.rating_tg = Rating(rating_tg[0])
+            else:
+                self.rating_tg = Rating()
+        else:
+            self.rating_tg = Rating()
         loading_progress['current'] += 1
 
 
@@ -175,11 +197,11 @@ class InGameRatingOverlay():
     def run(self):
         self._create_loading_information_window()
 
-        print('Starting "update_game_information" thread.')
+        print('[Thread-0] Starting "update_game_information" thread.')
         self._update_game_information_thread = threading.Thread(target=self._update_game_information)
         self._update_game_information_thread.start()
 
-        print('Entering main loop...')
+        print('[Thread-0] Entering main loop...')
 
         while not self._finish:
             percentage = int(loading_progress['current'] / loading_progress['steps'] * 100)
@@ -194,18 +216,18 @@ class InGameRatingOverlay():
             e2, v2 = self._loading_information_window.read(100)
 
             if e1 in (sg.WIN_CLOSED, 'Exit') or e2 in (sg.WIN_CLOSED, 'Exit'):
-                print('finish = True')
+                print('[Thread-0] finish = True')
                 self._finish = True
                 self._event_refresh_game_information.set()
 
             if e1 == 'Refresh now...':
-                print('Evenet: "Refresh now" generated.')
+                print('[Thread-0] Evenet: "Refresh now" generated.')
                 self._event_refresh_game_information.set()
 
             self._save_windows_location()
 
             if self._fetching_data:
-                print('Fetching new data')
+                print('[Thread-0] Fetching new data')
                 if self._main_window is not None:
                     self._main_window.close()
                     self._main_window = None
@@ -218,7 +240,7 @@ class InGameRatingOverlay():
                 self._fetching_data = False
 
             if self._update_main_window:
-                print('Updating main window.')
+                print('[Thread-0] Updating main window.')
                 self._current_match_lock.acquire()
                 if self._main_window is not None:
                     self._main_window.close()
@@ -229,7 +251,7 @@ class InGameRatingOverlay():
                 self._loading_information_window.refresh()
                 self._current_match_lock.release()
 
-        print('Main loop terminated!')
+        print('[Thread-0] Main loop terminated!')
 
         if self._main_window is not None:
             self._main_window.close()
@@ -238,15 +260,15 @@ class InGameRatingOverlay():
             self._loading_information_window.close()
             self._loading_information_window = None
 
-        print('Waiting for update_game_information thread to terminate...')
+        print('[Thread-0] Waiting for update_game_information thread to terminate...')
         self._update_game_information_thread.join()
-        print('update_game_information thread terminated!')
+        print('[Thread-0] update_game_information thread terminated!')
 
     def _get_copyright_text(self):
         return sg.Text(COPYRIGHT_TEXT, pad=NO_PADDING, background_color=TEXT_BG_COLOR, justification='center', font=COPYRIGHT_FONT)
 
     def _create_loading_information_window(self):
-        print('Creating loading_information_window...')
+        print('[Thread-0] Creating loading_information_window...')
         self._loading_information_window = sg.Window(
             None,
             self._loading_information_window_layout,
@@ -267,10 +289,10 @@ class InGameRatingOverlay():
             sx, sy = self._loading_information_window.size
             self._loading_information_window.move(int(c - sx/2), y)
             self._loading_information_window.refresh()
-        print('loading_information_window created!')
+        print('[Thread-0] loading_information_window created!')
 
     def _create_main_window(self):
-        print('Creating main window...')
+        print('[Thread-0] Creating main window...')
         self._update_main_window_layout()
         self._main_window = sg.Window(
             None,
@@ -290,10 +312,10 @@ class InGameRatingOverlay():
             sx, sy = self._main_window.size
             self._main_window.move(int(c - sx/2), y)
         self._main_window.refresh()
-        print('Main window created!')
+        print('[Thread-0] Main window created!')
 
     def _update_main_window_layout(self):
-        print('Updating main window layout...')
+        print('[Thread-0] Updating main window layout...')
         self._main_window_layout = [
             [
                 sg.Column(self._main_window_columns[LEFT], pad=NO_PADDING, background_color=BG_COLOR_INVISIBLE, vertical_alignment='top', element_justification='right'),
@@ -316,7 +338,7 @@ class InGameRatingOverlay():
         except FileNotFoundError:
             location = (None, None)
 
-        print('Getting last window location:', location)
+        print('[Thread-0] Getting last window location:', location)
 
         return location
 
@@ -329,7 +351,7 @@ class InGameRatingOverlay():
             sx, sy = self._loading_information_window.size
         current_location = (int(x + sx/2), int(y))
         if current_location != self._main_window_last_location:
-            print('Saving new window location:', current_location)
+            print('[Thread-0] Saving new window location:', current_location)
             self._main_window_last_location = current_location
             location_file_path = WINDOW_LOCATION_FILE.format(os.getenv('USERPROFILE'))
             location_file = open(location_file_path, 'w')
@@ -338,52 +360,52 @@ class InGameRatingOverlay():
 
     def _update_game_information(self):
         while not self._finish:
-            print('[Thread] update_game_information thread loop...')
+            print('[Thread-1] update_game_information thread loop...')
 
             # Read AoE2.net profile ID from configuration file.
             configuration_file = open(CONFIGURATION_FILE, 'r')
             AOE2NET_PROFILE_ID = int(configuration_file.read())
             configuration_file.close()
-            print('[Thread] AOE2NET_PROFILE_ID:', AOE2NET_PROFILE_ID)
+            print('[Thread-1] AOE2NET_PROFILE_ID:', AOE2NET_PROFILE_ID)
 
             # Get Last/Current match.
-            print('[Thread] Fetching game data...')
+            print('[Thread-1] Fetching game data...')
             try:
                 match_data = requests.get(AOE2NET_URL + 'player/lastmatch?game=aoe2de&profile_id={}'.format(AOE2NET_PROFILE_ID)).json()
             except Exception as error:
-                print('[Thread] request timeout... retrying...:', error)
+                print('[Thread-1] request timeout... retrying...:', error)
                 self._event_refresh_game_information.wait(REFRESH_TIMEOUT)
                 self._event_refresh_game_information.clear()
                 continue
             new_match = Match(match_data, self._strings)
-            print('[Thread] Fetching game data done!')
+            print('[Thread-1] Fetching game data done!')
 
             if (self._current_match is None):
-                print('[Thread] New match id: {}'.format(new_match.match_id))            
+                print('[Thread-1] New match id: {}'.format(new_match.match_id))            
             else:
-                print('[Thread] Current match id: {} - New match id: {}'.format(self._current_match.match_id, new_match.match_id))
+                print('[Thread-1] Current match id: {} - New match id: {}'.format(self._current_match.match_id, new_match.match_id))
             if (self._current_match is None) or (self._current_match.match_id != new_match.match_id):
                 self._fetching_data = True
 
                 loading_progress['current'] = 0
                 loading_progress['steps'] = new_match.number_of_players * 2
 
-                print('[Thread] Fetching rating information...')
+                print('[Thread-1] Fetching rating information...')
                 try:
                     new_match.fetch_rating_information()
                 except Exception as error:
-                    print('[Thread] request timeout... retrying...:', error)
+                    print('[Thread-1] request timeout... retrying...:', error)
                     self._event_refresh_game_information.wait(REFRESH_TIMEOUT)
                     self._event_refresh_game_information.clear()
                     continue
-                print('[Thread] Fetching rating information done!')
+                print('[Thread-1] Fetching rating information done!')
 
                 self._current_match_lock.acquire()
                 self._current_match = new_match
 
                 self._main_window_columns = [[], []]
 
-                print('[Thread] Generating players rating information...')
+                print('[Thread-1] Generating players rating information...')
                 max_text_size = 0
                 for player in self._current_match.players:
                     player.text = self._player_info_printer.print(
@@ -413,15 +435,15 @@ class InGameRatingOverlay():
                     )
 
                     self._main_window_columns[column].append([text])
-                print('[Thread] Generating players rating information done!')
+                print('[Thread-1] Generating players rating information done!')
 
                 if not self._finish:
-                    print('[Thread] update_main_window = True')
+                    print('[Thread-1] update_main_window = True')
                     self._update_main_window = True
                 self._current_match_lock.release()
 
             if not self._finish:
-                print('[Thread] Waiting for {} seconds to next update or for "Refresh now" event.'.format(REFRESH_TIMEOUT))
+                print('[Thread-1] Waiting for {} seconds to next update or for "Refresh now" event.'.format(REFRESH_TIMEOUT))
                 self._event_refresh_game_information.wait(REFRESH_TIMEOUT)
                 self._event_refresh_game_information.clear()
 
