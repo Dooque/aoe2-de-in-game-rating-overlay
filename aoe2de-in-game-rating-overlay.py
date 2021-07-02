@@ -41,6 +41,18 @@ NO_DATA_STRING = '-----'
 
 MAX_NUMBER_OF_PLAYERS = 8
 
+SAVE_WINDOW_LOCATION_INTERVAL = 1 # Seconds.
+
+WINDOW_LOCATION_FILE = '{}\\aoe2de_in_game_rating_overlay-window_location.txt'
+
+loading_progress = {'steps':1, 'current':0}
+
+# This is not an error!!!
+JUSTIFICATION = {
+    LEFT: 'right',
+    RIGHT: 'left'
+}
+
 COLOR_CODES = {
     1: '#7A7AFC', # blue
     2: '#FD3434', # red
@@ -78,7 +90,7 @@ class Rating():
 
 class Player():
 
-    def __init__(self, player, strngs):
+    def __init__(self, player, strings):
         self.profile_id = player['profile_id']
         self.steam_id = player['steam_id']
         self.name = player['name']
@@ -90,11 +102,16 @@ class Player():
         civ = [ x['string'] for x in strings['civ'] if x['id'] == player['civ'] ]
         self.civ = civ.pop() if civ else NO_DATA_STRING
 
+    def fetch_rating_information(self):
+        print('[Thread] Fetching 1v1 rating information for player {}'.format(self.name))
         rating_1v1 = requests.get(AOE2NET_URL + 'player/ratinghistory?game=aoe2de&leaderboard_id=3&count=1&profile_id={}'.format(self.profile_id)).json()
-        self.rating_1v1 = Rating(rating_1v1)
+        self.rating_1v1 = Rating(rating_1v1[0])
+        loading_progress['current'] += 1
 
+        print('[Thread] Fetching TG rating information for player {}'.format(self.name))
         rating_tg = requests.get(AOE2NET_URL + 'player/ratinghistory?game=aoe2de&leaderboard_id=4&count=1&profile_id={}'.format(self.profile_id)).json()
-        self.rating_tg = Rating(rating_tg)
+        self.rating_tg = Rating(rating_tg[0])
+        loading_progress['current'] += 1
 
 
 class Match():
@@ -109,11 +126,13 @@ class Match():
 
         self.players = [ Player(player, strings) for player in last_match['players'] ]
 
+    def fetch_rating_information(self):
+        for player in self.players:
+            player.fetch_rating_information()
 
 class PlayerInformationPrinter():
 
-    @staticmethod
-    def print(number, name, elo, tgelo, text_position):
+    def print(self, number, name, elo, tgelo, text_position):
         if text_position == LEFT:
             return '{name} ({tgelo}) [{elo}] P{number}'.format(name=name, tgelo=tgelo, elo=elo, number=number)
         elif text_position == RIGHT:
@@ -125,37 +144,111 @@ class PlayerInformationPrinter():
 class InGameRatingOverlay():
 
     def __init__(self):
-        self._players_text_string = [ None ] * MAX_NUMBER_OF_PLAYERS
+        self._event_refresh_game_information = threading.Event()
+        self._player_info_printer = PlayerInformationPrinter()
+        self._strings = requests.get(AOE2NET_URL + 'strings?game=aoe2de&language=en').json()
+        self._current_match_lock = threading.Lock()
+        self._fetching_data = False
+        self._current_match = None
+        self._finish = False
 
-        self._copyright_text = sg.Text(COPYRIGHT_TEXT, pad=NO_PADDING, background_color=TEXT_BG_COLOR, justification='center', font=COPYRIGHT_FONT)
-
-        self._loading_information_text = sg.Text('Loading game information...', pad=NO_PADDING, background_color=TEXT_BG_COLOR, justification='center', font=(FONT_TYPE, 14))
+        self._loading_information_window_text = sg.Text('Loading game information:   0%', pad=NO_PADDING, background_color=TEXT_BG_COLOR, justification='center', font=(FONT_TYPE, 14))
+        self._loading_information_window_location = (None, None)
         self._loading_information_window_layout = [
             [
-                self._loading_information_text
+                self._loading_information_window_text
             ],
             [
-                self._copyright_text
+                self._get_copyright_text()
             ]
         ]
         self._loading_information_window_menu = ['menu', ['Exit',]]
+        self._loading_information_window = None
 
-        self._main_window_location = (None, None)
+        self._main_window_last_location = self._get_last_window_location()
         self._main_window_columns = [[], []]
         self._main_window_layout = None
         self._main_window_menu = ['menu', ['Refresh now...', 'Exit']]
-
-        self._event_is_safe_to_record_window_location = threading.Event()
-        self._event_refresh_game_information = threading.Event()
-        self._location_file_lock = threading.Lock()
-        self._main_window_lock = threading.Lock()
-
-        self._strings = requests.get(AOE2NET_URL + 'strings?game=aoe2de&language=en').json()
-        self._current_match_id = ''
+        self._main_window = None
+        self._update_main_window = False
 
     def run(self):
+        self._create_loading_information_window()
+
+        print('Starting "update_game_information" thread.')
+        self._update_game_information_thread = threading.Thread(target=self._update_game_information)
+        self._update_game_information_thread.start()
+
+        print('Entering main loop...')
+
+        while not self._finish:
+            percentage = int(loading_progress['current'] / loading_progress['steps'] * 100)
+            self._loading_information_window_text.update(value='Loading game information: {}%'.format(percentage))
+            self._loading_information_window.refresh()
+
+            if self._main_window is not None:
+                e1, v1 = self._main_window.read(100)
+            else:
+                e1, v1 = ('no-event', [])
+
+            e2, v2 = self._loading_information_window.read(100)
+
+            if e1 in (sg.WIN_CLOSED, 'Exit') or e2 in (sg.WIN_CLOSED, 'Exit'):
+                print('finish = True')
+                self._finish = True
+                self._event_refresh_game_information.set()
+
+            if e1 == 'Refresh now...':
+                print('Evenet: "Refresh now" generated.')
+                self._event_refresh_game_information.set()
+
+            self._save_windows_location()
+
+            if self._fetching_data:
+                print('Fetching new data')
+                if self._main_window is not None:
+                    self._main_window.close()
+                    self._main_window = None
+                if self._main_window_last_location != (None, None):
+                    c, y = self._main_window_last_location
+                    sx, sy = self._loading_information_window.size
+                    self._loading_information_window.move(int(c - sx/2), y)
+                self._loading_information_window.reappear()
+                self._loading_information_window.refresh()
+                self._fetching_data = False
+
+            if self._update_main_window:
+                print('Updating main window.')
+                self._current_match_lock.acquire()
+                if self._main_window is not None:
+                    self._main_window.close()
+                    self._main_window = None
+                self._create_main_window()
+                self._update_main_window = False
+                self._loading_information_window.disappear()
+                self._loading_information_window.refresh()
+                self._current_match_lock.release()
+
+        print('Main loop terminated!')
+
+        if self._main_window is not None:
+            self._main_window.close()
+            self._main_window = None
+        if self._loading_information_window is not None:
+            self._loading_information_window.close()
+            self._loading_information_window = None
+
+        print('Waiting for update_game_information thread to terminate...')
+        self._update_game_information_thread.join()
+        print('update_game_information thread terminated!')
+
+    def _get_copyright_text(self):
+        return sg.Text(COPYRIGHT_TEXT, pad=NO_PADDING, background_color=TEXT_BG_COLOR, justification='center', font=COPYRIGHT_FONT)
+
+    def _create_loading_information_window(self):
+        print('Creating loading_information_window...')
         self._loading_information_window = sg.Window(
-            '',
+            None,
             self._loading_information_window_layout,
             no_titlebar=True,
             keep_on_top=True,
@@ -164,21 +257,24 @@ class InGameRatingOverlay():
             transparent_color=BG_COLOR_INVISIBLE,
             alpha_channel=1,
             element_justification='center',
-            right_click_menu=self._loading_information_window_menu,
-            location = (None, None),
+            right_click_menu=self._loading_information_window_menu
         )
 
+        # We show this window in the same location than the main window.
         self._loading_information_window.finalize()
-        last_location = get_last_window_location()
-        if last_location != (None, None):
-            c, y = last_location
+        if self._main_window_last_location != (None, None):
+            c, y = self._main_window_last_location
             sx, sy = self._loading_information_window.size
             self._loading_information_window.move(int(c - sx/2), y)
             self._loading_information_window.refresh()
+        print('loading_information_window created!')
 
+    def _create_main_window(self):
+        print('Creating main window...')
+        self._update_main_window_layout()
         self._main_window = sg.Window(
-            '',
-            layout_data,
+            None,
+            self._main_window_layout,
             no_titlebar=True,
             keep_on_top=True,
             grab_anywhere=True,
@@ -189,24 +285,15 @@ class InGameRatingOverlay():
             right_click_menu=self._main_window_menu
         )
         self._main_window.finalize()
-        self._main_window.disappear()
+        if self._main_window_last_location != (None, None):
+            c, y = self._main_window_last_location
+            sx, sy = self._main_window.size
+            self._main_window.move(int(c - sx/2), y)
         self._main_window.refresh()
+        print('Main window created!')
 
-        threading.Thread(target=self.update_game_information, daemon=True, args=(self._main_window, self._loading_information_window)).start()
-        threading.Thread(target=save_window_location, daemon=True, args=(self._main_window,)).start()
-
-        while True:
-            event_data, values_data = self._main_window.read(500)
-            event_loading, values_loadinga = self._loading_information_window.read(500)
-            if event_data in (sg.WIN_CLOSED, 'Exit') or event_loading in (sg.WIN_CLOSED, 'Exit'):
-                break
-            if event_data == 'Refresh now...':
-                self._event_refresh_game_information.set()
-
-        self._main_window.close()
-        self._loading_information_window.close()
-
-    def update_main_window_layout(self):
+    def _update_main_window_layout(self):
+        print('Updating main window layout...')
         self._main_window_layout = [
             [
                 sg.Column(self._main_window_columns[LEFT], pad=NO_PADDING, background_color=BG_COLOR_INVISIBLE, vertical_alignment='top', element_justification='right'),
@@ -214,107 +301,140 @@ class InGameRatingOverlay():
                 sg.Column(self._main_window_columns[RIGHT], pad=NO_PADDING, background_color=BG_COLOR_INVISIBLE, vertical_alignment='top', element_justification='left'),
             ],
             [
-                self._copyright_text
+                self._get_copyright_text()
             ]
         ]
 
-    def update_game_information(self):
-        while True:
+    def _get_last_window_location(self):
+        try:
+            location_file_path = WINDOW_LOCATION_FILE.format(os.getenv('USERPROFILE'))
+            location_file = open(location_file_path, 'r')
+            try:
+                location = tuple(map(int, location_file.read().split(',')))
+            except:
+                location = (None, None)
+        except FileNotFoundError:
+            location = (None, None)
+
+        print('Getting last window location:', location)
+
+        return location
+
+    def _save_windows_location(self):
+        if self._main_window is not None:
+            x, y = self._main_window.CurrentLocation()
+            sx, sy = self._main_window.size
+        else:
+            x, y = self._loading_information_window.CurrentLocation()
+            sx, sy = self._loading_information_window.size
+        current_location = (int(x + sx/2), int(y))
+        if current_location != self._main_window_last_location:
+            print('Saving new window location:', current_location)
+            self._main_window_last_location = current_location
+            location_file_path = WINDOW_LOCATION_FILE.format(os.getenv('USERPROFILE'))
+            location_file = open(location_file_path, 'w')
+            location_file.write(str(int(current_location[0])) + ',' + str(int(current_location[1])))
+            location_file.close()
+
+    def _update_game_information(self):
+        while not self._finish:
+            print('[Thread] update_game_information thread loop...')
+
             # Read AoE2.net profile ID from configuration file.
             configuration_file = open(CONFIGURATION_FILE, 'r')
             AOE2NET_PROFILE_ID = int(configuration_file.read())
             configuration_file.close()
+            print('[Thread] AOE2NET_PROFILE_ID:', AOE2NET_PROFILE_ID)
 
             # Get Last/Current match.
-            match = requests.get(AOE2NET_URL + 'player/lastmatch?game=aoe2de&profile_id={}'.format(AOE2NET_PROFILE_ID)).json()
-            self._match = Match(match, self._strings)
-
-            if self._current_match_id != match.match_id:
-                self._main_window_lock.acquire()
-
-                self._main_window.disappear()
-                self._main_window.refresh()
-                self._loading_information_window.reappear()
-                self._loading_information_window.refresh()
-
-                self._current_match_id = match.match_id
-
-
-
-
-                text = PlayerInformationPrinter.print(
-                    player['color'],
-                    player['name'],
-                    rating_1v1['rating'],
-                    rating_tg['rating'],
-                    team_number % 2
-                )
-
-                self._players_text_string[team_number][player_number] = (text, COLORS[player['color']])
-                max_text_size = max_text_size if max_text_size > len(text) else len(text)
-
-                for team_number in [0, 1]:
-                    for player_number in [0, 1, 2, 3]:
-                        if self._players_text_string[team_number][player_number] is not None:
-                            text = self._players_text_string[team_number][player_number][0]
-                            color = self._players_text_string[team_number][player_number][1]
-                            if team_number == 0:
-                                text = ' ' * (max_text_size - len(text)) + text
-                            else:
-                                text = text + ' ' * (max_text_size - len(text))
-                            team_players_info[team_number][player_number].Update(value=text, text_color=color)
-
-                self._main_window.refresh()
-                last_location = get_last_window_location()
-                if last_location != (None, None):
-                    c, y = last_location
-                    sx, sy = self._main_window.size
-                    self._main_window.move(int(c - sx/2), y)
-                self._loading_information_window.disappear()
-                self._loading_information_window.refresh()
-                self._main_window.reappear()
-                self._main_window.refresh()
-
-                self._main_window_lock.release()
-
-            self._event_is_safe_to_record_window_location.set()
-            self._event_refresh_game_information.wait(REFRESH_TIMEOUT)
-
-    def get_last_window_location():
-        self._location_file_lock.acquire()
-        try:
-            location_file_path = '{}\\aoe2de-mp-ratings_window-location.txt'.format(os.getenv('USERPROFILE'))
-            location_file = open(location_file_path, 'r')
+            print('[Thread] Fetching game data...')
             try:
-                location = eval(location_file.read())
-            except SyntaxError:
-                location = (None, None)
-        except FileNotFoundError:
-            location = (None, None)
-        self._location_file_lock.release()
+                match_data = requests.get(AOE2NET_URL + 'player/lastmatch?game=aoe2de&profile_id={}'.format(AOE2NET_PROFILE_ID)).json()
+            except Exception as error:
+                print('[Thread] request timeout... retrying...:', error)
+                self._event_refresh_game_information.wait(REFRESH_TIMEOUT)
+                self._event_refresh_game_information.clear()
+                continue
+            new_match = Match(match_data, self._strings)
+            print('[Thread] Fetching game data done!')
 
-        return location
+            if (self._current_match is None):
+                print('[Thread] New match id: {}'.format(new_match.match_id))            
+            else:
+                print('[Thread] Current match id: {} - New match id: {}'.format(self._current_match.match_id, new_match.match_id))
+            if (self._current_match is None) or (self._current_match.match_id != new_match.match_id):
+                self._fetching_data = True
 
-    def save_window_location(self._main_window):
-        self._event_is_safe_to_record_window_location.wait()
-        last_location = get_last_window_location()
-        while True:
-            self._main_window_lock.acquire()
-            x, y = self._main_window.CurrentLocation()
-            sx, sy = self._main_window.size
-            self._main_window_lock.release()
-            current_location = (x + sx/2, y)
-            if current_location != last_location:
-                last_location = current_location
-                location_file_path = '{}\\aoe2de-mp-ratings_window-location.txt'.format(os.getenv('USERPROFILE'))
-                self._location_file_lock.acquire()
-                location_file = open(location_file_path, 'w')
-                location_file.write(str(current_location))
-                location_file.close()
-                self._location_file_lock.release()
-            time.sleep(2)
+                loading_progress['current'] = 0
+                loading_progress['steps'] = new_match.number_of_players * 2
+
+                print('[Thread] Fetching rating information...')
+                try:
+                    new_match.fetch_rating_information()
+                except Exception as error:
+                    print('[Thread] request timeout... retrying...:', error)
+                    self._event_refresh_game_information.wait(REFRESH_TIMEOUT)
+                    self._event_refresh_game_information.clear()
+                    continue
+                print('[Thread] Fetching rating information done!')
+
+                self._current_match_lock.acquire()
+                self._current_match = new_match
+
+                self._main_window_columns = [[], []]
+
+                print('[Thread] Generating players rating information...')
+                max_text_size = 0
+                for player in self._current_match.players:
+                    player.text = self._player_info_printer.print(
+                        player.number,
+                        player.name,
+                        player.rating_1v1.rating,
+                        player.rating_tg.rating,
+                        player.team % 2
+                    )
+                    max_text_size = max_text_size if max_text_size > len(player.text) else len(player.text)
+
+                for player in self._current_match.players:
+                    column = player.team % 2
+
+                    if column == LEFT:
+                        player.text = ' ' * (max_text_size - len(player.text)) + player.text
+                    else: # column == RIGH:
+                        player.text = player.text + ' ' * (max_text_size - len(player.text))
+
+                    text = sg.Text(
+                        player.text,
+                        pad=NO_PADDING,
+                        background_color=TEXT_BG_COLOR,
+                        justification=JUSTIFICATION[column],
+                        font=(FONT_TYPE, FONT_SIZE),
+                        text_color=COLOR_CODES[player.color_number]
+                    )
+
+                    self._main_window_columns[column].append([text])
+                print('[Thread] Generating players rating information done!')
+
+                if not self._finish:
+                    print('[Thread] update_main_window = True')
+                    self._update_main_window = True
+                self._current_match_lock.release()
+
+            if not self._finish:
+                print('[Thread] Waiting for {} seconds to next update or for "Refresh now" event.'.format(REFRESH_TIMEOUT))
+                self._event_refresh_game_information.wait(REFRESH_TIMEOUT)
+                self._event_refresh_game_information.clear()
+
+
+def previouse_version_cleanup():
+    USERPROFILE = os.getenv('USERPROFILE')
+    old_file = '{}\\aoe2de-mp-ratings_window-location.txt'.format(USERPROFILE)
+    new_file = WINDOW_LOCATION_FILE.format(USERPROFILE)
+    if os.path.exists(old_file):
+        os.rename(old_file, new_file)
 
 
 if __name__ == '__main__':
+    previouse_version_cleanup()
     overlay = InGameRatingOverlay()
     overlay.run()
