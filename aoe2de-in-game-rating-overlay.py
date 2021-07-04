@@ -75,6 +75,7 @@ COLOR_STRINGS = {
     8: 'orange',
 }
 
+sg.set_options(tooltip_font=('"{}" {}'.format(FONT_TYPE, FONT_SIZE)))
 
 class Rating():
 
@@ -83,9 +84,9 @@ class Rating():
             self.rating = rating["rating"]
             self.num_wins = rating["num_wins"]
             self.num_losses = rating["num_losses"]
-            self.streak = rating["streak"]
+            self.streak = '+' + str(rating["streak"]) if rating["streak"] > 0 else str(rating["streak"])
             self.games = self.num_wins + self.num_losses
-            self.win_ratio = self.num_wins / self.games
+            self.win_ratio = int(self.num_wins / self.games * 100)
         else:
             self.rating = 0
             self.num_wins = 0
@@ -479,13 +480,20 @@ class InGameRatingOverlay():
                     else: # column == RIGH:
                         player.text = player.text + ' ' * (max_text_size - len(player.text))
 
+                    tooltip = 'Civ: {} - [{}] - ({})\n1v1: G:{}\tS:{}\tW:{}\tL:{}\tR:{}%\nTG:  G:{}\tS:{}\tW:{}\tL:{}\tR:{}%'.format(
+                        player.civ, player.rating_1v1.rating, player.rating_tg.rating,
+                        player.rating_1v1.games, player.rating_1v1.streak, player.rating_1v1.num_wins, player.rating_1v1.num_losses, player.rating_1v1.win_ratio,
+                        player.rating_tg.games, player.rating_tg.streak, player.rating_tg.num_wins, player.rating_tg.num_losses, player.rating_tg.win_ratio
+                    )
+
                     text = sg.Text(
                         player.text,
                         pad=NO_PADDING,
                         background_color=TEXT_BG_COLOR,
                         justification=JUSTIFICATION[column],
                         font=(FONT_TYPE, FONT_SIZE),
-                        text_color=COLOR_CODES[player.color_number]
+                        text_color=COLOR_CODES[player.color_number],
+                        tooltip=tooltip
                     )
 
                     self._main_window_columns[column].append([text])
