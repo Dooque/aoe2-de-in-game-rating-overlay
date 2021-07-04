@@ -10,12 +10,22 @@ This is an in game rating overlay which shows on top of the screen the RM 1v1 EL
 
 It currently works only for "Random Map" games.
 
-You can drag the text anywhere in the in the screen. The program will remeber the position in the screen for the next time.
+You can drag the text anywhere in the in the screen. The program will remember the position in the screen for the next time.
 
 The 1v1 ELO is shown between *[ ]* and the TG ELO is shown between *( )*.
 
 ![](./res/picture1.png)
 ![](./res/picture2.png)
+![](./res/picture3.png)
+![](./res/picture4.png)
+
+Also it is possible to minimize the window. Right click con the window and click on "Minimize".
+
+The position of the minimized window is independent of the maximized window, so for example, in between games you can put the minimize window in a position where it does not collide with the game's menu.
+
+![](./res/picture6.png)
+![](./res/picture5.png)
+![](./res/picture7.png)
 
 ## Installation & Configuration
 
@@ -27,7 +37,7 @@ The only required configuration you need is to write your [AoE2.net](https://aoe
 
 ### How to close the program?
 
-Click on the window and press `Alt+F4`.
+Right click and the click on `Exit`.
 
 ### How do I get my AoE2.net profile ID?
 
@@ -35,21 +45,21 @@ Go to https://aoe2.net/.
 
 Click on "Leaderboards" and pick "Random Map":
 
-![](./res/picture3.png)
+![](./res/picture8.png)
 
 On the search section enter your Steam profile name. Once you see yourself in the table click on your name:
 
 > NOTE: If you don't appear in the list it is because you haven't play at least 10 ranked games. You need to play 10 ranked games to have an AoE2.net profile ID.
 
-![](./res/picture4.png)
+![](./res/picture9.png)
 
 Click on the "Profile" button at the bottom right of the window:
 
-![](./res/picture5.png)
+![](./res/picture10.png)
 
 Then you will see the profile ID in the URL section:
 
-![](./res/picture6.png)
+![](./res/picture11.png)
 
 Copy and paste it into the `AOE2NET_PROFILE_ID.txt` file.
 
