@@ -1,5 +1,7 @@
 # Age of Empires II DE - In Game Rating Overlay
 
+[English](./README.md) | [Español](./README.es.md)
+
 ## Download
 
 You can download the latest release from [here](https://github.com/Dooque/aoe2-de-in-game-rating-overlay/archive/refs/tags/v0.1.0.zip).
@@ -19,7 +21,7 @@ The 1v1 ELO is shown between *[ ]* and the TG ELO is shown between *( )*.
 ![](./res/picture3.png)
 ![](./res/picture4.png)
 
-Also it is possible to minimize the window. Right click con the window and click on "Minimize".
+Also it is possible to minimize the window. Right click on the window and click on "Minimize".
 
 The position of the minimized window is independent of the maximized window, so for example, in between games you can put the minimize window in a position where it does not collide with the game's menu.
 
@@ -70,18 +72,20 @@ And that's it, you can now run the `aoe2de-mp-ratings.exe` file.
 1. Be able to change the text color, font and size from a configuration file.
 2. Be able to set a background with solid color from a configuration file.
 4. Show the text with the "self (blue) / ally (yellow) / enemy (red)" color mode.
-5. Show extended player information when the mouse goes over the player name.
-6. Make configurable the refresh time.
-8. Add a menu to close the program.
+5. Make configurable the refresh time.
 
 ## CHANGELOG
 
-### v0.2.0 (WIP)
+### v0.2.0
 
 * Changed font size from 11 to 9.
 * Changed font type from Britannic Bold to Liberation Mono Bold.
 * Added font file to be installed.
 * Added loading banner.
+* Added menu to close the program.
+* Added menu to minimize/maximize the window.
+* Added menu to refresh the game information.
+* Added extended player information when the mouse goes over the player name.
 * Added copyright.
 
 ### v0.1.0
