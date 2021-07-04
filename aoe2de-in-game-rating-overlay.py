@@ -370,6 +370,8 @@ class InGameRatingOverlay():
             right_click_menu=self._minimized_window_menu
         )
         self._minimized_window.finalize()
+        self._minimized_window.move(*self._minimized_window_last_location)
+        self._minimized_window.refresh()
         self._minimized_window.disappear()
         print('[Thread-0] Minimized window created!')
 
@@ -413,7 +415,8 @@ class InGameRatingOverlay():
         main_current_location = (int(x + sx/2), int(y))
         minimized_current_location = self._minimized_window.CurrentLocation()
         if (main_current_location != self._main_window_last_location) or (minimized_current_location != self._minimized_window_last_location):
-            print('[Thread-0] Saving new window location:', main_current_location)
+            print('[Thread-0] Saving main window location:', main_current_location)
+            print('[Thread-0] Saving minimized window location:', minimized_current_location)
             self._main_window_last_location = main_current_location
             self._minimized_window_last_location = minimized_current_location
             location_file_path = WINDOW_LOCATION_FILE.format(os.getenv('USERPROFILE'))
