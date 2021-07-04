@@ -116,7 +116,9 @@ class Player():
     def fetch_rating_information(self):
         print('[Thread-1] Fetching 1v1 rating information for player {}'.format(self.name))
         if self.profile_id is not None:
-            rating_1v1 = requests.get(AOE2NET_URL + 'player/ratinghistory?game=aoe2de&leaderboard_id=3&count=1&profile_id={}'.format(self.profile_id)).json()
+            url = AOE2NET_URL + 'player/ratinghistory?game=aoe2de&leaderboard_id=3&count=1&profile_id={}'.format(self.profile_id)
+            print('[Thread-1] Fetching from:', url)
+            rating_1v1 = requests.get(url).json()
             if rating_1v1:
                 self.rating_1v1 = Rating(rating_1v1[0])
             else:
@@ -127,7 +129,9 @@ class Player():
 
         print('[Thread-1] Fetching TG rating information for player {}'.format(self.name))
         if self.profile_id is not None:
-            rating_tg = requests.get(AOE2NET_URL + 'player/ratinghistory?game=aoe2de&leaderboard_id=4&count=1&profile_id={}'.format(self.profile_id)).json()
+            url = AOE2NET_URL + 'player/ratinghistory?game=aoe2de&leaderboard_id=4&count=1&profile_id={}'.format(self.profile_id)
+            print('[Thread-1] Fetching from:', url)
+            rating_tg = requests.get(url).json()
             if rating_tg:
                 self.rating_tg = Rating(rating_tg[0])
             else:
@@ -167,9 +171,11 @@ class PlayerInformationPrinter():
 class InGameRatingOverlay():
 
     def __init__(self):
+        url = AOE2NET_URL + 'strings?game=aoe2de&language=en'
+        print('[Thread-0] Fetching from:', url)
+        self._strings = requests.get(url).json()
         self._event_refresh_game_information = threading.Event()
         self._player_info_printer = PlayerInformationPrinter()
-        self._strings = requests.get(AOE2NET_URL + 'strings?game=aoe2de&language=en').json()
         self._current_match_lock = threading.Lock()
         self._fetching_data = False
         self._current_match = None
@@ -426,7 +432,9 @@ class InGameRatingOverlay():
             # Get Last/Current match.
             print('[Thread-1] Fetching game data...')
             try:
-                match_data = requests.get(AOE2NET_URL + 'player/lastmatch?game=aoe2de&profile_id={}'.format(AOE2NET_PROFILE_ID)).json()
+                url = AOE2NET_URL + 'player/lastmatch?game=aoe2de&profile_id={}'.format(AOE2NET_PROFILE_ID)
+                print('[Thread-0] Fetching from:', url)
+                match_data = requests.get(url).json()
             except Exception as error:
                 print('[Thread-1] request timeout... retrying...:', error)
                 self._event_refresh_game_information.wait(REFRESH_TIMEOUT)
