@@ -8,13 +8,12 @@ Puedes descargar la última versión desde [aquí](https://github.com/Dooque/aoe
 
 ## Introducción
 
-Es una ventana que muestra por encima de todo en la pantalla el ELO 1vs1 RM y el ELO TG RM para todos los jugadores en una partida multijugador.
+Este programa es una ventana que muestra por encima de todo en la pantalla el ELO 1vs1 RM y el ELO TG RM para todos los jugadores en una partida multijugador.
 
 Actualmente solo funciona para partidas de "Mapa Aleatorio".
 
 Puedes mover el texto a cualquier posición en la pantalla. El programa recordará la posición de la ventana en la pantalla para la próxima vez que lo abras.
 
-The 1v1 ELO is shown between *[ ]* and the TG ELO is shown between *( )*.
 El ELO 1vs se muestre entre *[ ]* y el ELO TG se muestra entre *( )*.
 
 ![](./res/picture1.png)
@@ -34,7 +33,7 @@ La posición de la ventana minimizada es independiente de la ventana maximizada,
 
 El programa no requiere instalación. Solo hay que extraer el archivo ZIP, configurar tu ID de perfil, instalar la fuente y ejecutar el archivo `aoe2de-mp-ratings.exe`
 
-La fuente se instala haciendo doble clic en el archivo `LiberationMono-Bold.ttf`, y luego haciendo clic en el botón `Instalar`. Una vez instalada la ventana de la fuente se puede cerrar.
+La fuente se instala haciendo doble clic en el archivo `LiberationMono-Bold.ttf`, y luego haciendo clic en el botón `Instalar`. Una vez instalada, la ventana de la fuente se puede cerrar.
 
 La única configuración que se necesita es escribir tu ID del perfil de [AoE2.net](https://aoe2.net) en el archivo `AOE2NET_PROFILE_ID.txt`.
 
@@ -68,7 +67,7 @@ Copia y pega el número en el archivo `AOE2NET_PROFILE_ID.txt`.
 
 Y eso es todo, ya puede ejecutar `aoe2de-mp-ratings.exe`.
 
-## Próximamente?
+## Qué sigue?
 
 1. Poder cambiar el color, fuente y tamaño del texto desde un archivo de configuración.
 2. Poder seleccionar un fondo de color sólido desde un archivo de configuración.
