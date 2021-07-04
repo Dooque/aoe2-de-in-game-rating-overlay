@@ -15,6 +15,7 @@ import PySimpleGUI as sg
 
 
 LEFT = 0
+
 RIGHT = 1
 
 AOE2NET_URL = 'https://aoe2.net/api/'
@@ -45,8 +46,6 @@ SAVE_WINDOW_LOCATION_INTERVAL = 1 # Seconds.
 
 WINDOW_LOCATION_FILE = '{}\\aoe2de_in_game_rating_overlay-window_location.txt'
 
-loading_progress = {'steps':1, 'current':0}
-
 # This is not an error!!!
 JUSTIFICATION = {
     LEFT: 'right',
@@ -75,7 +74,11 @@ COLOR_STRINGS = {
     8: 'orange',
 }
 
+
+loading_progress = {'steps':1, 'current':0}
+
 sg.set_options(tooltip_font=('"{}" {}'.format(FONT_TYPE, FONT_SIZE)))
+
 
 class Rating():
 
@@ -84,7 +87,7 @@ class Rating():
             self.rating = rating["rating"]
             self.num_wins = rating["num_wins"]
             self.num_losses = rating["num_losses"]
-            self.streak = '+' + str(rating["streak"]) if rating["streak"] > 0 else str(rating["streak"])
+            self.streak = rating["streak"]
             self.games = self.num_wins + self.num_losses
             self.win_ratio = int(self.num_wins / self.games * 100)
         else:
@@ -480,15 +483,21 @@ class InGameRatingOverlay():
                     )
                     max_text_size = max_text_size if max_text_size > len(player.text) else len(player.text)
 
+                auxiliar_counter = 0
+                number_of_players = self._current_match.number_of_players
                 for player in self._current_match.players:
-                    column = player.team % 2
+                    if ((number_of_players == 2) or (number_of_players == 4)) and any(p.team == -1 for p in self._current_match.players):
+                        column = auxiliar_counter
+                        auxiliar_counter += 1
+                    else:
+                        column = player.team % 2
 
                     if column == LEFT:
                         player.text = ' ' * (max_text_size - len(player.text)) + player.text
                     else: # column == RIGH:
                         player.text = player.text + ' ' * (max_text_size - len(player.text))
 
-                    tooltip = 'Civ: {} - [{}] - ({})\n1v1: G:{}\tS:{}\tW:{}\tL:{}\tR:{}%\nTG:  G:{}\tS:{}\tW:{}\tL:{}\tR:{}%'.format(
+                    tooltip = 'Civ: {} - [{}] - ({})\n1v1: G:{}\tS:{:+}\tW:{}\tL:{}\tR:{}%\nTG:  G:{}\tS:{:+}\tW:{}\tL:{}\tR:{}%'.format(
                         player.civ, player.rating_1v1.rating, player.rating_tg.rating,
                         player.rating_1v1.games, player.rating_1v1.streak, player.rating_1v1.num_wins, player.rating_1v1.num_losses, player.rating_1v1.win_ratio,
                         player.rating_tg.games, player.rating_tg.streak, player.rating_tg.num_wins, player.rating_tg.num_losses, player.rating_tg.win_ratio
