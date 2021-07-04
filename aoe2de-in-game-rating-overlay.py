@@ -241,10 +241,7 @@ class InGameRatingOverlay():
             if e1 == 'Minimize':
                 self._main_window.disappear()
                 self._main_window.refresh()
-                if self._minimized_window_last_location != (None, None):
-                    c, y = self._minimized_window_last_location
-                    sx, sy = self._minimized_window.size
-                    self._minimized_window.move(int(c - sx/2), y)
+                self._minimized_window.move(*self._minimized_window_last_location)
                 self._minimized_window.reappear()
                 self._minimized_window.refresh()
 
