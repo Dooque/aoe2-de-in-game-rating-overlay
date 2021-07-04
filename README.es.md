@@ -29,6 +29,10 @@ La posición de la ventana minimizada es independiente de la ventana maximizada,
 ![](./res/picture5.png)
 ![](./res/picture7.png)
 
+Además puedes ver información extra de cada jugador si dejas el puntero del ratón sobre el nombre de un jugador:
+
+![](./res/picture12.png)
+
 ## Instalación & Configuración
 
 El programa no requiere instalación. Solo hay que extraer el archivo ZIP, configurar tu ID de perfil, instalar la fuente y ejecutar el archivo `aoe2de-mp-ratings.exe`

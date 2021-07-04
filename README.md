@@ -29,6 +29,10 @@ The position of the minimized window is independent of the maximized window, so 
 ![](./res/picture5.png)
 ![](./res/picture7.png)
 
+You can also see extended players information if you let the mouse pointer over the name of a player:
+
+![](./res/picture12.png)
+
 ## Installation & Configuration
 
 The program requires no installation. Just extract the ZIP file, configure your profile ID, install the font, and run the `aoe2de-mp-ratings.exe` file.
