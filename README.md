@@ -4,7 +4,7 @@
 
 ## Download
 
-You can download the latest release from [here](https://github.com/Dooque/aoe2-de-in-game-rating-overlay/archive/refs/tags/v0.1.0.zip).
+You can download the latest release from [here](https://github.com/Dooque/aoe2-de-in-game-rating-overlay/archive/refs/tags/v0.2.0.zip).
 
 ## Introduction
 
