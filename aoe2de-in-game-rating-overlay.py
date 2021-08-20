@@ -174,9 +174,8 @@ class PlayerInformationPrinter():
 class InGameRatingOverlay():
 
     def __init__(self):
-        url = AOE2NET_URL + 'strings?game=aoe2de&language=en'
-        print('[Thread-0] Fetching from:', url)
-        self._strings = requests.get(url).json()
+        self._strings = None
+        self._is_server_ok = False
         self._event_refresh_game_information = threading.Event()
         self._player_info_printer = PlayerInformationPrinter()
         self._current_match_lock = threading.Lock()
@@ -226,10 +225,30 @@ class InGameRatingOverlay():
 
         print('[Thread-0] Entering main loop...')
 
+        number_of_retries = 0
+
         while not self._finish:
-            percentage = int(loading_progress['current'] / loading_progress['steps'] * 100)
-            self._loading_information_window_text.update(value='Loading game information: {}%'.format(percentage))
-            self._loading_information_window.refresh()
+            if self._strings is None:
+                url = AOE2NET_URL + 'strings?game=aoe2de&language=en'
+                print('[Thread-0] Fetching from:', url)
+                try:
+                    if number_of_retries != 0:
+                        time.sleep(5)
+                        print('[Thread-0] Number of retries:', number_of_retries)    
+                    self._strings = requests.get(url).json()
+                    self._is_server_ok = True
+                except Exception as error:
+                    print('[Thread-0] request timeout... retrying...:', error)
+                    self._is_server_ok = False
+                    number_of_retries += 1
+
+            if self._is_server_ok:
+                percentage = int(loading_progress['current'] / loading_progress['steps'] * 100)
+                self._loading_information_window_text.update(value='Loading game information: {}%'.format(percentage))
+                self._loading_information_window.refresh()
+            else:
+                self._loading_information_window_text.update(value='Waiting for server...')
+                self._loading_information_window.refresh()
 
             if self._main_window is not None:
                 e1, v1 = self._main_window.read(50)
@@ -246,12 +265,13 @@ class InGameRatingOverlay():
 
             if e1 == 'Refresh':
                 print('[Thread-0] Evenet: "Refresh now" generated.')
+                self._current_match = None
                 self._event_refresh_game_information.set()
 
             if e1 == 'Minimize':
                 self._main_window.disappear()
                 self._main_window.refresh()
-                self._minimized_window.move(*self._minimized_window_last_location)
+                self._minimized_window.move(int(self._minimized_window_last_location[0]), int(self._minimized_window_last_location[1]))
                 self._minimized_window.reappear()
                 self._minimized_window.refresh()
 
@@ -261,21 +281,24 @@ class InGameRatingOverlay():
                 if self._main_window_last_location != (None, None):
                     c, y = self._main_window_last_location
                     sx, sy = self._main_window.size
-                    self._main_window.move(int(c - sx/2), y)
+                    self._main_window.move(int(c - sx/2.0), int(y))
                 self._main_window.reappear()
                 self._main_window.refresh()
 
             self._save_windows_location()
 
-            if self._fetching_data:
-                print('[Thread-0] Fetching new data')
+            if (self._fetching_data or not self._is_server_ok) and (self._loading_information_window is None):
+                if self._fetching_data:
+                    print('[Thread-0] Fetching new data')
+                elif not self._is_server_ok:
+                    print('[Thread-0] Server if offline')
                 if self._main_window is not None:
                     self._main_window.close()
                     self._main_window = None
                 if self._main_window_last_location != (None, None):
                     c, y = self._main_window_last_location
                     sx, sy = self._loading_information_window.size
-                    self._loading_information_window.move(int(c - sx/2), y)
+                    self._loading_information_window.move(int(c - sx/2), int(y))
                 self._loading_information_window.reappear()
                 self._loading_information_window.refresh()
                 self._fetching_data = False
@@ -328,7 +351,7 @@ class InGameRatingOverlay():
         if self._main_window_last_location != (None, None):
             c, y = self._main_window_last_location
             sx, sy = self._loading_information_window.size
-            self._loading_information_window.move(int(c - sx/2), y)
+            self._loading_information_window.move(int(c - sx/2.0), int(y))
             self._loading_information_window.refresh()
         print('[Thread-0] loading_information_window created!')
 
@@ -351,7 +374,7 @@ class InGameRatingOverlay():
         if self._main_window_last_location != (None, None):
             c, y = self._main_window_last_location
             sx, sy = self._main_window.size
-            self._main_window.move(int(c - sx/2), y)
+            self._main_window.move(int(c - sx/2.0), int(y))
         self._main_window.refresh()
         print('[Thread-0] Main window created!')
 
@@ -370,7 +393,7 @@ class InGameRatingOverlay():
             right_click_menu=self._minimized_window_menu
         )
         self._minimized_window.finalize()
-        self._minimized_window.move(*self._minimized_window_last_location)
+        self._minimized_window.move(int(self._minimized_window_last_location[0]), int(self._minimized_window_last_location[1]))
         self._minimized_window.refresh()
         self._minimized_window.disappear()
         print('[Thread-0] Minimized window created!')
@@ -393,8 +416,8 @@ class InGameRatingOverlay():
             location_file_path = WINDOW_LOCATION_FILE.format(os.getenv('USERPROFILE'))
             location_file = open(location_file_path, 'r')
             try:
-                main_window_location = tuple(map(int, location_file.readline().split(',')))
-                minimized_window_location = tuple(map(int, location_file.readline().split(',')))
+                main_window_location = tuple(map(float, location_file.readline().split(',')))
+                minimized_window_location = tuple(map(float, location_file.readline().split(',')))
                 location = {'main_window':main_window_location, 'minimized_window':minimized_window_location}
             except:
                 location = {'main_window':(None, None), 'minimized_window':(None, None)}
@@ -412,7 +435,7 @@ class InGameRatingOverlay():
         else:
             x, y = self._loading_information_window.CurrentLocation()
             sx, sy = self._loading_information_window.size
-        main_current_location = (int(x + sx/2), int(y))
+        main_current_location = (x + sx/2.0, y)
         minimized_current_location = self._minimized_window.CurrentLocation()
         if (main_current_location != self._main_window_last_location) or (minimized_current_location != self._minimized_window_last_location):
             print('[Thread-0] Saving main window location:', main_current_location)
@@ -421,13 +444,18 @@ class InGameRatingOverlay():
             self._minimized_window_last_location = minimized_current_location
             location_file_path = WINDOW_LOCATION_FILE.format(os.getenv('USERPROFILE'))
             location_file = open(location_file_path, 'w')
-            location_file.write(str(int(main_current_location[0])) + ',' + str(int(main_current_location[1])) + '\n')
-            location_file.write(str(int(minimized_current_location[0])) + ',' + str(int(minimized_current_location[1])))
+            location_file.write(str(main_current_location[0]) + ',' + str(main_current_location[1]) + '\n')
+            location_file.write(str(minimized_current_location[0]) + ',' + str(minimized_current_location[1]))
             location_file.close()
 
     def _update_game_information(self):
         while not self._finish:
             print('[Thread-1] update_game_information thread loop...')
+
+            if self._strings is None:
+                print('[Thread-1] Server connection has not been established. Waiting for 1 second.')
+                time.sleep(1)
+                continue
 
             # Read AoE2.net profile ID from configuration file.
             configuration_file = open(CONFIGURATION_FILE, 'r')
@@ -439,10 +467,12 @@ class InGameRatingOverlay():
             print('[Thread-1] Fetching game data...')
             try:
                 url = AOE2NET_URL + 'player/lastmatch?game=aoe2de&profile_id={}'.format(AOE2NET_PROFILE_ID)
-                print('[Thread-0] Fetching from:', url)
+                print('[Thread-1] Fetching from:', url)
                 match_data = requests.get(url).json()
+                self._is_server_ok = True
             except Exception as error:
                 print('[Thread-1] request timeout... retrying...:', error)
+                self._is_server_ok = False
                 self._event_refresh_game_information.wait(REFRESH_TIMEOUT)
                 self._event_refresh_game_information.clear()
                 continue
@@ -453,6 +483,7 @@ class InGameRatingOverlay():
                 print('[Thread-1] New match id: {}'.format(new_match.match_id))            
             else:
                 print('[Thread-1] Current match id: {} - New match id: {}'.format(self._current_match.match_id, new_match.match_id))
+
             if (self._current_match is None) or (self._current_match.match_id != new_match.match_id):
                 self._fetching_data = True
 
@@ -462,8 +493,10 @@ class InGameRatingOverlay():
                 print('[Thread-1] Fetching rating information...')
                 try:
                     new_match.fetch_rating_information()
+                    self._is_server_ok = True
                 except Exception as error:
                     print('[Thread-1] request timeout... retrying...:', error)
+                    self._is_server_ok = False
                     self._event_refresh_game_information.wait(REFRESH_TIMEOUT)
                     self._event_refresh_game_information.clear()
                     continue
