@@ -4,7 +4,7 @@
 
 ## Descargar
 
-Puedes descargar la última versión desde [aquí](https://github.com/Dooque/aoe2-de-in-game-rating-overlay/archive/refs/tags/v0.2.0.zip).
+Puedes descargar la última versión desde [aquí](https://github.com/Dooque/aoe2-de-in-game-rating-overlay/archive/refs/tags/v0.2.1.zip).
 
 ## Introducción
 
@@ -75,10 +75,17 @@ Y eso es todo, ya puede ejecutar `aoe2de-mp-ratings.exe`.
 
 1. Poder cambiar el color, fuente y tamaño del texto desde un archivo de configuración.
 2. Poder seleccionar un fondo de color sólido desde un archivo de configuración.
-4. Mostrar el texto con el modo de colores aliado/enemigo "azul/amarillo/rojo".
-6. Poder modificar el tiempo de actualización desde un archivo de configuración.
+3. Mostrar el texto con el modo de colores aliado/enemigo "azul/amarillo/rojo".
+4. Poder modificar el tiempo de actualización desde un archivo de configuración.
+5. Poder elegir el usuario por menú.
 
 ## HISTORIAL DE CAMBIOS
+
+### v0.2.1
+
+* Se corrigió un error donde el programa se cerraba si el servidor no estaba disponible.
+* Se corrigió un error donde la posición de las ventanas cambiaba cuando se pasaba de Minimizado a Maximizado.
+* Se corrigió un problema donde al hace click en "Refresh" los datos no se actualizaban si no había comenzado una nueva partida.
 
 ### v0.2.0
 
