@@ -14,7 +14,7 @@ Actualmente solo funciona para partidas de "Mapa Aleatorio".
 
 Puedes mover el texto a cualquier posición en la pantalla. El programa recordará la posición de la ventana en la pantalla para la próxima vez que lo abras.
 
-El ELO 1vs se muestre entre *[ ]* y el ELO TG se muestra entre *( )*.
+El ELO 1v1 se muestre entre *[ ]* y el ELO TG se muestra entre *( )*.
 
 ![](./res/picture1.png)
 ![](./res/picture2.png)
