@@ -55,15 +55,6 @@ Civ: {civ} - [{rating1v1}] - ({ratingtg})
 1v1: G={games1v1}, S={streak1v1}, W={wins1v1}, L={losses1v1}, {ratio1v1}%
 TG : G={gamestg}, S={streaktg}, W={winstg}, L={lossestg}, {ratiotg}%"""
 
-TOOLTIP_FORMAT_STR_ = """{name}
-Civ: {civ} - [{rating1v1}] - ({ratingtg})
-   1v1\tTG
-G: {games1v1}\t{gamestg}
-S: {streak1v1}\t{streaktg}
-W: {wins1v1}\t{winstg}
-L: {losses1v1}\t{lossestg}
-R: {ratio1v1}\t{ratiotg}"""
-
 # This is not an error!!!
 JUSTIFICATION = {
     LEFT: 'right',
