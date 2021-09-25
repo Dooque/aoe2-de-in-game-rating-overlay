@@ -271,7 +271,11 @@ class InGameRatingOverlay():
             if e1 == 'Minimize':
                 self._main_window.disappear()
                 self._main_window.refresh()
-                self._minimized_window.move(int(self._minimized_window_last_location[0]), int(self._minimized_window_last_location[1]))
+                x, y = self._minimized_window_last_location
+                if (x, y) != (None, None):
+                    self._minimized_window.move(int(x), int(y))
+                else:
+                    self._minimized_window.move(x, y)
                 self._minimized_window.reappear()
                 self._minimized_window.refresh()
 
@@ -287,7 +291,7 @@ class InGameRatingOverlay():
 
             self._save_windows_location()
 
-            if (self._fetching_data or not self._is_server_ok) and (self._loading_information_window is None):
+            if self._fetching_data or not self._is_server_ok:
                 if self._fetching_data:
                     print('[Thread-0] Fetching new data')
                 elif not self._is_server_ok:
@@ -393,7 +397,11 @@ class InGameRatingOverlay():
             right_click_menu=self._minimized_window_menu
         )
         self._minimized_window.finalize()
-        self._minimized_window.move(int(self._minimized_window_last_location[0]), int(self._minimized_window_last_location[1]))
+        x, y = self._minimized_window_last_location
+        if (x, y) != (None, None):
+            self._minimized_window.move(int(x), int(y))
+        else:
+            self._minimized_window.move(x, y)
         self._minimized_window.refresh()
         self._minimized_window.disappear()
         print('[Thread-0] Minimized window created!')
