@@ -42,9 +42,27 @@ NO_DATA_STRING = '----'
 
 MAX_NUMBER_OF_PLAYERS = 8
 
+MAX_PLAYER_NAME_STRING_SIZE = 15
+
+MAX_PLAYER_ROW_STRING_SIZE = 32
+
 SAVE_WINDOW_LOCATION_INTERVAL = 1 # Seconds.
 
 WINDOW_LOCATION_FILE = '{}\\aoe2de_in_game_rating_overlay-window_location.txt'
+
+TOOLTIP_FORMAT_STR = """{name}
+Civ: {civ} - [{rating1v1}] - ({ratingtg})
+1v1: G={games1v1}, S={streak1v1}, W={wins1v1}, L={losses1v1}, {ratio1v1}%
+TG : G={gamestg}, S={streaktg}, W={winstg}, L={lossestg}, {ratiotg}%"""
+
+TOOLTIP_FORMAT_STR_ = """{name}
+Civ: {civ} - [{rating1v1}] - ({ratingtg})
+   1v1\tTG
+G: {games1v1}\t{gamestg}
+S: {streak1v1}\t{streaktg}
+W: {wins1v1}\t{winstg}
+L: {losses1v1}\t{lossestg}
+R: {ratio1v1}\t{ratiotg}"""
 
 # This is not an error!!!
 JUSTIFICATION = {
@@ -163,10 +181,13 @@ class Match():
 class PlayerInformationPrinter():
 
     def print(self, number, name, elo, tgelo, text_position):
+        name = name[:MAX_PLAYER_NAME_STRING_SIZE]
         if text_position == LEFT:
-            return '{name} ({tgelo}) [{elo}] P{number}'.format(name=name, tgelo=tgelo, elo=elo, number=number)
+            text = '{name} ({tgelo}) [{elo}] P{number}'.format(name=name, tgelo=tgelo, elo=elo, number=number)
+            return (' ' * (MAX_PLAYER_ROW_STRING_SIZE - len(text))) + text
         elif text_position == RIGHT:
-            return 'P{number} [{elo}] ({tgelo}) {name}'.format(number=number, elo=elo, tgelo=tgelo, name=name)
+            text = 'P{number} [{elo}] ({tgelo}) {name}'.format(number=number, elo=elo, tgelo=tgelo, name=name)
+            return text + (' ' * (MAX_PLAYER_ROW_STRING_SIZE - len(text)))
         else:
             raise Exception('Invalid text_position value: {}'.format(text_position))
 
@@ -541,10 +562,14 @@ class InGameRatingOverlay():
                     else: # column == RIGH:
                         player.text = player.text + ' ' * (max_text_size - len(player.text))
 
-                    tooltip = 'Civ: {} - [{}] - ({})\n1v1: G:{}\tS:{:+}\tW:{}\tL:{}\tR:{}%\nTG:  G:{}\tS:{:+}\tW:{}\tL:{}\tR:{}%'.format(
-                        player.civ, player.rating_1v1.rating, player.rating_tg.rating,
-                        player.rating_1v1.games, player.rating_1v1.streak, player.rating_1v1.num_wins, player.rating_1v1.num_losses, player.rating_1v1.win_ratio,
-                        player.rating_tg.games, player.rating_tg.streak, player.rating_tg.num_wins, player.rating_tg.num_losses, player.rating_tg.win_ratio
+                    tooltip = TOOLTIP_FORMAT_STR.format(
+                        name=player.name,
+                        civ=player.civ, rating1v1=player.rating_1v1.rating, ratingtg=player.rating_tg.rating,
+                        games1v1=player.rating_1v1.games, gamestg=player.rating_tg.games,
+                        streak1v1=player.rating_1v1.streak, streaktg=player.rating_tg.streak,
+                        wins1v1=player.rating_1v1.num_wins, winstg=player.rating_tg.num_wins,
+                        losses1v1=player.rating_1v1.num_losses, lossestg=player.rating_tg.num_losses,
+                        ratio1v1=player.rating_1v1.win_ratio, ratiotg=player.rating_tg.win_ratio
                     )
 
                     text = sg.Text(
