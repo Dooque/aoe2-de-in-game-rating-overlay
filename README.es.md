@@ -81,6 +81,12 @@ Y eso es todo, ya puede ejecutar `aoe2de-mp-ratings.exe`.
 
 ## HISTORIAL DE CAMBIOS
 
+### vX.Y.Z
+
+* Se modificó la información extendida de cada jugado.
+* Los nombres de los jugadores son de tamaño fijo ahora por lo que la ventana también lo es.
+* Se corrigió un error con el botón "Refresh".
+
 ### v0.2.1
 
 * Se corrigió un error donde el programa se cerraba si el servidor no estaba disponible.
@@ -96,6 +102,7 @@ Y eso es todo, ya puede ejecutar `aoe2de-mp-ratings.exe`.
 * Añadido menú para cerrar el programa.
 * Menú agregado para minimizar / maximizar la ventana.
 * Menú agregado para actualizar la información del juego.
+* Se agregó información extendida de cada jugador cuando se pasa el puntero del mouse sobre el nombre.
 * Derechos de autor agregados.
 
 ### v0.1.0

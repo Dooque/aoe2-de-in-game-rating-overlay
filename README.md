@@ -81,6 +81,12 @@ And that's it, you can now run the `aoe2de-mp-ratings.exe` file.
 
 ## CHANGELOG
 
+### vX.Y.Z
+
+* Updated the extended player information when the mouse goes over the player name.
+* Players' name are now of fixed size so the window is of fixed size.
+* Fixed an issue with the "Refresh" button.
+
 ### v0.2.1
 
 * Fixed an issue where the program crash if the server is not available.
