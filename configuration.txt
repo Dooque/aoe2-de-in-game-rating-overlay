@@ -3,7 +3,7 @@
 		{"name":"Dooque", "ID":2489825, "current":1},
 		{"name":"Mendieta", "ID":3842644, "current":0}
 	],
-	"font-type":"Liberation Mono Bold",
+	"font-type":"Arial",
 	"font-size":10,
 	"refresh-time":10
 }
