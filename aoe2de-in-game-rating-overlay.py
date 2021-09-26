@@ -7,11 +7,12 @@
 
 import json
 import os
+import PySimpleGUI as sg
 import requests
+import shutil
 import sys
 import threading
 import time
-import PySimpleGUI as sg
 
 
 LEFT = 0
@@ -39,8 +40,6 @@ MAX_NUMBER_OF_PLAYERS = 8
 MAX_PLAYER_NAME_STRING_SIZE = 15
 
 MAX_PLAYER_ROW_STRING_SIZE = 32
-
-SAVE_WINDOW_LOCATION_INTERVAL = 1 # Seconds.
 
 WINDOW_LOCATION_FILE = '{}\\aoe2de_in_game_rating_overlay-window_location.txt'
 
@@ -486,9 +485,6 @@ class InGameRatingOverlay():
         if self._main_window is not None:
             x, y = self._main_window.CurrentLocation()
             sx, sy = self._main_window.size
-        #else:
-        #    x, y = self._loading_information_window.CurrentLocation()
-        #    sx, sy = self._loading_information_window.size
             main_current_location = (x + sx/2.0, y)
             minimized_current_location = self._minimized_window.CurrentLocation()
             if (main_current_location != self._main_window_last_location) or (minimized_current_location != self._minimized_window_last_location):
@@ -631,6 +627,21 @@ def previouse_version_cleanup():
 
 
 if __name__ == '__main__':
-    previouse_version_cleanup()
-    overlay = InGameRatingOverlay()
-    overlay.run()
+    version_file = open(VERSION_FILE_CURRENT)
+    current_version = version_file.read()
+    version_file.close()
+
+    if sys.argv[2] == '1':
+        src_file = './tmp/aoe2-de-in-game-rating-overlay-{version}/update.exe'.format(version=current_version[1:])
+        dst_file = './aoe2de-in-game-rating-overlay.exe'
+        os.remove(dst_file)
+        shutil.move(dst_file, src_file)
+        shutil.rmtree('./tmp', ignore_errors=True)
+
+    if sys.argv[1] == '901014CF3D89AF19EBB94C5E06A768D63EDEF307E3C0A78F110810D0586B1604':
+        previouse_version_cleanup()
+        overlay = InGameRatingOverlay()
+        overlay.run()
+    else:
+        print('[Thread-0] Invalid hash number.')
+
