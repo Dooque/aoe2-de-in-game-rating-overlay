@@ -190,7 +190,7 @@ class InGameRatingOverlay():
         self._current_match = None
         self._finish = False
 
-        self._loading_information_window_text = sg.Text('Loading game information:   0%', pad=NO_PADDING, background_color=TEXT_BG_COLOR, justification='center', font=(self._font_type, self._font_size))
+        self._loading_information_window_text = sg.Text('Loading game information:   0%', expand_x=True, pad=NO_PADDING, background_color=TEXT_BG_COLOR, justification='center', font=(self._font_type, self._font_size))
         self._loading_information_window_location = (None, None)
         self._loading_information_window_layout = [
             [
@@ -215,7 +215,7 @@ class InGameRatingOverlay():
         self._minimized_window_menu = ['menu', ['Maximize', '---', 'Exit']]
         self._minimized_window_layout = [
             [
-                sg.Text('Ratings', pad=NO_PADDING, background_color=TEXT_BG_COLOR, justification='center', font=(self._font_type, self._font_size))
+                sg.Text('Ratings', expand_x=True, pad=NO_PADDING, background_color=TEXT_BG_COLOR, justification='center', font=(self._font_type, self._font_size))
             ],
             [
                 self._get_copyright_text()
@@ -273,10 +273,10 @@ class InGameRatingOverlay():
             if e1 in [user['name'] for user in self._users]:
                 for user in self._users:
                     if e1 == user['name']:
-                        e1 = 'Refresh'
+                        user['current'] = 1
                     else:
                         user['current'] = 0
-                user['current'] = 1
+                e1 = 'Refresh'
 
             if e1 == 'Refresh':
                 print('[Thread-0] Evenet: "Refresh now" generated.')
@@ -363,11 +363,12 @@ class InGameRatingOverlay():
             print('[Thread-0] Configuration loading failed!')
             error_window = sg.Window(
                 'ERROR',
-                [[sg.Text('There is a syntax error in the configuration file.', background_color='#ff0000', justification='center', font=('Arial', 14))],],
+                [[sg.Text('There is a syntax error in the configuration file.', expand_x=True, background_color='#ff0000', justification='center', font=('Arial', 14))],],
                 keep_on_top=True,
                 background_color='#ff0000',
                 alpha_channel=1,
                 element_justification='center',
+                icon='./res/813780_icon.ico'
             )
             error_window.finalize()
 
@@ -377,7 +378,7 @@ class InGameRatingOverlay():
                     sys.exit(0)
 
     def _get_copyright_text(self):
-        return sg.Text(COPYRIGHT_TEXT, pad=NO_PADDING, background_color=TEXT_BG_COLOR, justification='center', font=COPYRIGHT_FONT)
+        return sg.Text(COPYRIGHT_TEXT, expand_x=True, pad=NO_PADDING, background_color=TEXT_BG_COLOR, justification='center', font=COPYRIGHT_FONT)
 
     def _create_loading_information_window(self):
         print('[Thread-0] Creating loading_information_window...')
@@ -386,7 +387,7 @@ class InGameRatingOverlay():
             self._loading_information_window_layout,
             no_titlebar=True,
             keep_on_top=True,
-            grab_anywhere=True,
+            grab_anywhere=False,
             background_color=BG_COLOR_INVISIBLE,
             transparent_color=BG_COLOR_INVISIBLE,
             alpha_channel=1,
@@ -416,7 +417,8 @@ class InGameRatingOverlay():
             transparent_color=BG_COLOR_INVISIBLE,
             alpha_channel=1,
             element_justification='center',
-            right_click_menu=self._main_window_menu
+            right_click_menu=self._main_window_menu,
+            icon='./res/813780_icon.ico'
         )
         self._main_window.finalize()
         if self._main_window_last_location != (None, None):
@@ -484,21 +486,21 @@ class InGameRatingOverlay():
         if self._main_window is not None:
             x, y = self._main_window.CurrentLocation()
             sx, sy = self._main_window.size
-        else:
-            x, y = self._loading_information_window.CurrentLocation()
-            sx, sy = self._loading_information_window.size
-        main_current_location = (x + sx/2.0, y)
-        minimized_current_location = self._minimized_window.CurrentLocation()
-        if (main_current_location != self._main_window_last_location) or (minimized_current_location != self._minimized_window_last_location):
-            print('[Thread-0] Saving main window location:', main_current_location)
-            print('[Thread-0] Saving minimized window location:', minimized_current_location)
-            self._main_window_last_location = main_current_location
-            self._minimized_window_last_location = minimized_current_location
-            location_file_path = WINDOW_LOCATION_FILE.format(os.getenv('USERPROFILE'))
-            location_file = open(location_file_path, 'w')
-            location_file.write(str(main_current_location[0]) + ',' + str(main_current_location[1]) + '\n')
-            location_file.write(str(minimized_current_location[0]) + ',' + str(minimized_current_location[1]))
-            location_file.close()
+        #else:
+        #    x, y = self._loading_information_window.CurrentLocation()
+        #    sx, sy = self._loading_information_window.size
+            main_current_location = (x + sx/2.0, y)
+            minimized_current_location = self._minimized_window.CurrentLocation()
+            if (main_current_location != self._main_window_last_location) or (minimized_current_location != self._minimized_window_last_location):
+                print('[Thread-0] Saving main window location:', main_current_location)
+                print('[Thread-0] Saving minimized window location:', minimized_current_location)
+                self._main_window_last_location = main_current_location
+                self._minimized_window_last_location = minimized_current_location
+                location_file_path = WINDOW_LOCATION_FILE.format(os.getenv('USERPROFILE'))
+                location_file = open(location_file_path, 'w')
+                location_file.write(str(main_current_location[0]) + ',' + str(main_current_location[1]) + '\n')
+                location_file.write(str(minimized_current_location[0]) + ',' + str(minimized_current_location[1]))
+                location_file.close()
 
     def _update_game_information(self):
         while not self._finish:
@@ -597,6 +599,7 @@ class InGameRatingOverlay():
 
                     text = sg.Text(
                         player.text,
+                        expand_x=True,
                         pad=NO_PADDING,
                         background_color=TEXT_BG_COLOR,
                         justification=JUSTIFICATION[column],
