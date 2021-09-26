@@ -5,12 +5,12 @@
 # python -m pysimplegui-exemaker.pysimplegui-exemaker
 #
 
+import json
 import os
 import requests
 import sys
 import threading
 import time
-
 import PySimpleGUI as sg
 
 
@@ -20,11 +20,7 @@ RIGHT = 1
 
 AOE2NET_URL = 'https://aoe2.net/api/'
 
-CONFIGURATION_FILE = './AOE2NET_PROFILE_ID.txt'
-
-FONT_TYPE = 'Liberation Mono Bold'
-
-FONT_SIZE = 10
+CONFIGURATION_FILE = './configuration.txt'
 
 NO_PADDING = ((0,0),(0,0))
 
@@ -35,8 +31,6 @@ BG_COLOR_INVISIBLE = '#010101'
 COPYRIGHT_FONT = ('Arial', 8)
 
 COPYRIGHT_TEXT = u'\u00A9' + ' Dooque'
-
-REFRESH_TIMEOUT = 10 # Seconds
 
 NO_DATA_STRING = '----'
 
@@ -85,8 +79,6 @@ COLOR_STRINGS = {
 
 
 loading_progress = {'steps':1, 'current':0}
-
-sg.set_options(tooltip_font=('"{}" {}'.format(FONT_TYPE, FONT_SIZE)))
 
 
 class Rating():
@@ -169,6 +161,7 @@ class Match():
         for player in self.players:
             player.fetch_rating_information()
 
+
 class PlayerInformationPrinter():
 
     def print(self, number, name, elo, tgelo, text_position):
@@ -186,6 +179,8 @@ class PlayerInformationPrinter():
 class InGameRatingOverlay():
 
     def __init__(self):
+        self._load_configuration()
+
         self._strings = None
         self._is_server_ok = False
         self._event_refresh_game_information = threading.Event()
@@ -195,7 +190,7 @@ class InGameRatingOverlay():
         self._current_match = None
         self._finish = False
 
-        self._loading_information_window_text = sg.Text('Loading game information:   0%', pad=NO_PADDING, background_color=TEXT_BG_COLOR, justification='center', font=(FONT_TYPE, 14))
+        self._loading_information_window_text = sg.Text('Loading game information:   0%', pad=NO_PADDING, background_color=TEXT_BG_COLOR, justification='center', font=(self._font_type, self._font_size))
         self._loading_information_window_location = (None, None)
         self._loading_information_window_layout = [
             [
@@ -211,7 +206,7 @@ class InGameRatingOverlay():
         self._main_window_last_location = self._get_last_windows_location()['main_window']
         self._main_window_columns = [[], []]
         self._main_window_layout = None
-        self._main_window_menu = ['menu', ['Refresh', 'Minimize', '---', 'Exit']]
+        self._main_window_menu = ['menu', ['Minimize', 'Refresh', '---', 'Users', [user['name'] for user in self._users], '---', 'Exit']]
         self._main_window = None
         self._update_main_window = False
 
@@ -220,7 +215,7 @@ class InGameRatingOverlay():
         self._minimized_window_menu = ['menu', ['Maximize', '---', 'Exit']]
         self._minimized_window_layout = [
             [
-                sg.Text('Ratings', pad=NO_PADDING, background_color=TEXT_BG_COLOR, justification='center', font=(FONT_TYPE, 14))
+                sg.Text('Ratings', pad=NO_PADDING, background_color=TEXT_BG_COLOR, justification='center', font=(self._font_type, self._font_size))
             ],
             [
                 self._get_copyright_text()
@@ -274,6 +269,14 @@ class InGameRatingOverlay():
                 print('[Thread-0] finish = True')
                 self._finish = True
                 self._event_refresh_game_information.set()
+
+            if e1 in [user['name'] for user in self._users]:
+                for user in self._users:
+                    if e1 == user['name']:
+                        e1 = 'Refresh'
+                    else:
+                        user['current'] = 0
+                user['current'] = 1
 
             if e1 == 'Refresh':
                 print('[Thread-0] Evenet: "Refresh now" generated.')
@@ -343,6 +346,35 @@ class InGameRatingOverlay():
         print('[Thread-0] Waiting for update_game_information thread to terminate...')
         self._update_game_information_thread.join()
         print('[Thread-0] update_game_information thread terminated!')
+
+    def _load_configuration(self):
+        try:
+            print('[Thread-0] Loading configuration file at:', CONFIGURATION_FILE)
+            f = open(CONFIGURATION_FILE)
+            conf = json.load(f)
+            f.close()
+            self._users = conf['users']
+            self._font_type = conf['font-type']
+            self._font_size = conf['font-size']
+            self._refresh_time = conf['refresh-time']
+            print('[Thread-0] Configuration loaded successfully:', conf)
+            sg.set_options(tooltip_font=('"{}" {}'.format(self._font_type, self._font_size)))
+        except json.JSONDecodeError:
+            print('[Thread-0] Configuration loading failed!')
+            error_window = sg.Window(
+                'ERROR',
+                [[sg.Text('There is a syntax error in the configuration file.', background_color='#ff0000', justification='center', font=('Arial', 14))],],
+                keep_on_top=True,
+                background_color='#ff0000',
+                alpha_channel=1,
+                element_justification='center',
+            )
+            error_window.finalize()
+
+            while True:
+                e1, v1 = error_window.read()
+                if e1 in (sg.WIN_CLOSED, 'Exit'):
+                    sys.exit(0)
 
     def _get_copyright_text(self):
         return sg.Text(COPYRIGHT_TEXT, pad=NO_PADDING, background_color=TEXT_BG_COLOR, justification='center', font=COPYRIGHT_FONT)
@@ -477,23 +509,23 @@ class InGameRatingOverlay():
                 time.sleep(1)
                 continue
 
-            # Read AoE2.net profile ID from configuration file.
-            configuration_file = open(CONFIGURATION_FILE, 'r')
-            AOE2NET_PROFILE_ID = int(configuration_file.read())
-            configuration_file.close()
-            print('[Thread-1] AOE2NET_PROFILE_ID:', AOE2NET_PROFILE_ID)
+            # Read AoE2.net profile ID from configuration.
+            for user in self._users:
+                if user['current']:
+                    profile_id = user['ID']
+                    print('[Thread-1] Current user: Name = {name} - Profile ID = {id}'.format(name=user['name'], id=profile_id))
 
             # Get Last/Current match.
             print('[Thread-1] Fetching game data...')
             try:
-                url = AOE2NET_URL + 'player/lastmatch?game=aoe2de&profile_id={}'.format(AOE2NET_PROFILE_ID)
+                url = AOE2NET_URL + 'player/lastmatch?game=aoe2de&profile_id={}'.format(profile_id)
                 print('[Thread-1] Fetching from:', url)
                 match_data = requests.get(url).json()
                 self._is_server_ok = True
             except Exception as error:
                 print('[Thread-1] request timeout... retrying...:', error)
                 self._is_server_ok = False
-                self._event_refresh_game_information.wait(REFRESH_TIMEOUT)
+                self._event_refresh_game_information.wait(self._refresh_time)
                 self._event_refresh_game_information.clear()
                 continue
             new_match = Match(match_data, self._strings)
@@ -517,7 +549,7 @@ class InGameRatingOverlay():
                 except Exception as error:
                     print('[Thread-1] request timeout... retrying...:', error)
                     self._is_server_ok = False
-                    self._event_refresh_game_information.wait(REFRESH_TIMEOUT)
+                    self._event_refresh_game_information.wait(self._refresh_time)
                     self._event_refresh_game_information.clear()
                     continue
                 print('[Thread-1] Fetching rating information done!')
@@ -568,7 +600,7 @@ class InGameRatingOverlay():
                         pad=NO_PADDING,
                         background_color=TEXT_BG_COLOR,
                         justification=JUSTIFICATION[column],
-                        font=(FONT_TYPE, FONT_SIZE),
+                        font=(self._font_type, self._font_size),
                         text_color=COLOR_CODES[player.color_number],
                         tooltip=tooltip
                     )
@@ -582,8 +614,8 @@ class InGameRatingOverlay():
                 self._current_match_lock.release()
 
             if not self._finish:
-                print('[Thread-1] Waiting for {} seconds to next update or for "Refresh now" event.'.format(REFRESH_TIMEOUT))
-                self._event_refresh_game_information.wait(REFRESH_TIMEOUT)
+                print('[Thread-1] Waiting for {} seconds to next update or for "Refresh now" event.'.format(self._refresh_time))
+                self._event_refresh_game_information.wait(self._refresh_time)
                 self._event_refresh_game_information.clear()
 
 
