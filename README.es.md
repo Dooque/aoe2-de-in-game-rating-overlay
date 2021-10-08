@@ -2,7 +2,7 @@
 
 [Español](./README.es.md) | [English](./README.md)
 
-Unete a la discucion en [Discord](https://discord.gg/5Ke9Fa5G5x)
+Únete a la discución en [Discord](https://discord.gg/5Ke9Fa5G5x)
 
 ## Descargar
 
@@ -78,21 +78,24 @@ Y eso es todo, ya puede ejecutar `aoe2de-mp-ratings.exe`.
 1. Poder cambiar el color del texto desde un archivo de configuración.
 2. Poder seleccionar un fondo de color sólido desde un archivo de configuración.
 3. Mostrar el texto con el modo de colores aliado/enemigo "azul/amarillo/rojo".
+4. Hacer que funcione para Guerras Imperiales.
+5. Hacer que funcione para Combate Total.
 
 ## Peroblemas Conocidos
 
-1. Luego de actualizaciones de los servidores o del juego la aplicacion puede tener problemas para conectarse a los servidores. SOLUCION: El problema parese desaparecer luego de alrededor de 24 horas.
-2. Si hay un segundo monitor conectado a la PC, y la aplicacion se muestra en ese monitor, y luego se desconecta el monitor, la aplicacion se seguira mostrando en la posicion de ese monitor, por lo que no se podra ver la aplicacion. SOLUCION: Eliminar el archivo `C:\Users\USER\aoe2de_in_game_rating_overlay-window_location.txt`.
+1. Luego de actualizaciones de los servidores o del juego la aplicación puede tener problemas para conectarse a los servidores. SOLUCIÓN: El problema parese desaparecer luego de alrededor de 24 horas.
+2. Si hay un segundo monitor conectado a la PC, y la aplicación se muestra en ese monitor, y luego se desconecta el monitor, la aplicación se seguirá mostrando en la posición de ese monitor, por lo que no se podrá ver la aplicación. SOLUCIÓN: Eliminar el archivo `C:\Users\USER\aoe2de_in_game_rating_overlay-window_location.txt`.
 
 ## HISTORIAL DE CAMBIOS
 
 ### v1.0.0
 
-* Se modificó la información extendida de cada jugado.
-* Los nombres de los jugadores son de tamaño fijo ahora por lo que la ventana también lo es.
+* Se reemplazó el uso del ID de perfil de aoe2.net por el ID de Steam.
+* Ahora la aplicación puede manejar múltiples perfiles de jugadores.
+* Ahora la aplicación consulta e informa de nuevas versiones disponibles.
+* Los nombres de los jugadores son de tamaño fijo ahora, por lo que la ventana es más pequeña.
+* Se modificó la información extendida de cada jugado para que sea más pequeña.
 * Se corrigió un error con el botón "Refresh".
-* Checkeo de nuevas versiones disponibles.
-* Ahora la aplicacion puede manejar multiples perfiles de jugadores.
 * Se corrigen errores relacionados a la infomarcion del mach, ya que algunas veces la informacion esta incompleta en terminos de los valores de equipo y color de cada jugador.
 * Se corrige un error done la ventana principal se desfazaba algunos pixeles luego de un refresh.
 
