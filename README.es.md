@@ -127,3 +127,7 @@ Y eso es todo, ya puede ejecutar `aoe2de-mp-ratings.exe`.
    * Racha de juegos aleatorios en equipo.
 * Se muestra parte de la información en una ventana transparente de fuente de texto fija (Arial), tamaño (14) y color. (blanco).
 * El programa busca un nuevo juego cada una cantidad fija de tiempo (10 segundos).
+
+- - -
+
+*Age of Empires II Definitive Edition © Microsoft Corporation. Age of Empires II DE - In Game Rating Overlay was created under [Microsoft's "Game Content Usage Rules"](https://www.xbox.com/en-US/developers/rules) using assets from Age of Empires II Definitive Edition, and it is not endorsed by or affiliated with Microsoft.*

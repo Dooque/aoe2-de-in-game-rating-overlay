@@ -127,3 +127,7 @@ And that's it, you can now run the `aoe2de-mp-ratings.exe` file.
   * Random Map Team Game streak.
 * Show some of the information in a transparent window of fixed text font (Arial), size (14) and color. (white).
 * The program fetch for a new game every a fixed amount of time (10 seconds).
+
+- - -
+
+*Age of Empires II Definitive Edition © Microsoft Corporation. Age of Empires II DE - In Game Rating Overlay was created under [Microsoft's "Game Content Usage Rules"](https://www.xbox.com/en-US/developers/rules) using assets from Age of Empires II Definitive Edition, and it is not endorsed by or affiliated with Microsoft.*
