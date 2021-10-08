@@ -13,6 +13,7 @@ import shutil
 import sys
 import threading
 import time
+import traceback
 
 # If executable name ends with .py extension is because we're running it from source code.
 DEBUG = sys.argv[0].endswith('.py')
@@ -647,20 +648,23 @@ def previouse_version_cleanup():
 
 
 if __name__ == '__main__':
-    version_file = open(VERSION_FILE_CURRENT)
-    current_version = version_file.read()
-    version_file.close()
+    try:
+        version_file = open(VERSION_FILE_CURRENT)
+        current_version = version_file.read()
+        version_file.close()
 
-    if sys.argv[2] == '1':
-        src_file = './tmp/aoe2-de-in-game-rating-overlay-{version}/update.exe'.format(version=current_version[1:])
-        dst_file = './aoe2de-in-game-rating-overlay.exe'
-        os.remove(dst_file)
-        shutil.move(src_file, dst_file)
-        shutil.rmtree('./tmp', ignore_errors=True)
+        if sys.argv[2] == '1':
+            src_file = './tmp/aoe2-de-in-game-rating-overlay-{version}/update.exe'.format(version=current_version[1:])
+            dst_file = './aoe2de-in-game-rating-overlay.exe'
+            os.remove(dst_file)
+            shutil.move(src_file, dst_file)
+            shutil.rmtree('./tmp', ignore_errors=True)
 
-    if sys.argv[1] == '901014CF3D89AF19EBB94C5E06A768D63EDEF307E3C0A78F110810D0586B1604':
-        previouse_version_cleanup()
-        overlay = InGameRatingOverlay()
-        overlay.run()
-    else:
-        DebugMsg('[Thread-0] Invalid hash number.')
+        if sys.argv[1] == '901014CF3D89AF19EBB94C5E06A768D63EDEF307E3C0A78F110810D0586B1604':
+            previouse_version_cleanup()
+            overlay = InGameRatingOverlay()
+            overlay.run()
+        else:
+            DebugMsg('[Thread-0] Invalid hash number.')
+    except:
+        DebugMsg(str(print(traceback.format_exc())))
