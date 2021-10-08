@@ -2,6 +2,8 @@
 
 [English](./README.md) | [Español](./README.es.md)
 
+Join discussion on [Discord](https://discord.gg/5Ke9Fa5G5x)
+
 ## Download
 
 You can download the latest release from [here](https://github.com/Dooque/aoe2-de-in-game-rating-overlay/archive/refs/tags/v0.2.1.zip).
@@ -73,19 +75,26 @@ And that's it, you can now run the `aoe2de-mp-ratings.exe` file.
 
 ## What's next?
 
-1. Be able to change the text color, font and size from a configuration file.
+1. Be able to change the text color from configuration file.
 2. Be able to set a background with solid color from a configuration file.
 3. Show the text with the "self (blue) / ally (yellow) / enemy (red)" color mode.
-4. Make configurable the refresh time.
-5. Select user using the menu.
+
+## Known Issues
+
+1. After server updates or new game releases the application may fail to connect to the servers. WORKAROUND: So far the problem seems to vanish after about 24 hours.
+2. If you have an extra monitor connected to the PC, and you display the application on that screen, and the you disconnect the monitor the application will still be display in the position of the previous screen, so you are not going to see the application. WORKAROUND: Delete the file `C:\Users\USER\aoe2de_in_game_rating_overlay-window_location.txt`.
 
 ## CHANGELOG
 
-### vX.Y.Z
+### v1.0.0
 
 * Updated the extended player information when the mouse goes over the player name.
 * Players' name are now of fixed size so the window is of fixed size.
 * Fixed an issue with the "Refresh" button.
+* Check for new versions.
+* Now the application can manage multiple players profiles.
+* Fixed issues related to the match information when it is incomplete in terms of team and color information.
+* Fixed an issue where the main window moves some pixels after refreshing.
 
 ### v0.2.1
 

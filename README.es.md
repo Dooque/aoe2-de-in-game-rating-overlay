@@ -2,6 +2,8 @@
 
 [Español](./README.es.md) | [English](./README.md)
 
+Unete a la discucion en [Discord](https://discord.gg/5Ke9Fa5G5x)
+
 ## Descargar
 
 Puedes descargar la última versión desde [aquí](https://github.com/Dooque/aoe2-de-in-game-rating-overlay/archive/refs/tags/v0.2.1.zip).
@@ -73,19 +75,26 @@ Y eso es todo, ya puede ejecutar `aoe2de-mp-ratings.exe`.
 
 ## Qué sigue?
 
-1. Poder cambiar el color, fuente y tamaño del texto desde un archivo de configuración.
+1. Poder cambiar el color del texto desde un archivo de configuración.
 2. Poder seleccionar un fondo de color sólido desde un archivo de configuración.
 3. Mostrar el texto con el modo de colores aliado/enemigo "azul/amarillo/rojo".
-4. Poder modificar el tiempo de actualización desde un archivo de configuración.
-5. Poder elegir el usuario por menú.
+
+## Peroblemas Conocidos
+
+1. Luego de actualizaciones de los servidores o del juego la aplicacion puede tener problemas para conectarse a los servidores. SOLUCION: El problema parese desaparecer luego de alrededor de 24 horas.
+2. Si hay un segundo monitor conectado a la PC, y la aplicacion se muestra en ese monitor, y luego se desconecta el monitor, la aplicacion se seguira mostrando en la posicion de ese monitor, por lo que no se podra ver la aplicacion. SOLUCION: Eliminar el archivo `C:\Users\USER\aoe2de_in_game_rating_overlay-window_location.txt`.
 
 ## HISTORIAL DE CAMBIOS
 
-### vX.Y.Z
+### v1.0.0
 
 * Se modificó la información extendida de cada jugado.
 * Los nombres de los jugadores son de tamaño fijo ahora por lo que la ventana también lo es.
 * Se corrigió un error con el botón "Refresh".
+* Checkeo de nuevas versiones disponibles.
+* Ahora la aplicacion puede manejar multiples perfiles de jugadores.
+* Se corrigen errores relacionados a la infomarcion del mach, ya que algunas veces la informacion esta incompleta en terminos de los valores de equipo y color de cada jugador.
+* Se corrige un error done la ventana principal se desfazaba algunos pixeles luego de un refresh.
 
 ### v0.2.1
 
