@@ -23,15 +23,17 @@ def DebugMsg(msg):
         print(msg)
     else:
         with open(DEBUG_FILE, 'a') as file:
-            file.write(msg + '\r\n')
+            file.write(msg + '\n')
 
 DebugMsg('¡Starting AoE2 DE In Game Rating Overlay!')
+
+CURRENT_VERSION = 'v0.2.1'
 
 LEFT = 0
 
 RIGHT = 1
 
-VERSION_FILE_CURRENT = './VERSION'
+VERSION_FILE_URL = 'https://raw.github.com/Dooque/aoe2-de-in-game-rating-overlay/master/VERSION'
 
 AOE2NET_URL = 'https://aoe2.net/api/'
 
@@ -118,7 +120,6 @@ class Rating():
 class Player():
 
     def __init__(self, player, strings):
-        print(player)
         self.profile_id = player['profile_id']
         self.steam_id = player['steam_id']
         self.name = player['name']
@@ -196,6 +197,7 @@ class PlayerInformationPrinter():
 class InGameRatingOverlay():
 
     def __init__(self):
+        self._check_for_new_version()
         self._load_configuration()
 
         self._strings = None
@@ -363,6 +365,33 @@ class InGameRatingOverlay():
         DebugMsg('[Thread-0] Waiting for update_game_information thread to terminate...')
         self._update_game_information_thread.join()
         DebugMsg('[Thread-0] update_game_information thread terminated!')
+
+    def _check_for_new_version(self):
+        DebugMsg('[Thread-0] Running version {}.'.format(CURRENT_VERSION))
+
+        DebugMsg('[Thread-0] Checking for new version at: {}'.format(VERSION_FILE_URL))
+        try:
+            new_version = requests.get(VERSION_FILE_URL).text
+            if new_version[0] != 'v':
+                new_version = CURRENT_VERSION
+        except:
+            new_version = CURRENT_VERSION
+            DebugMsg('[Thread-0] Failed to fetch new version.')
+
+        if CURRENT_VERSION != new_version:
+            DebugMsg('[Thread-0] There is a new version available!')
+            self._update_window = sg.Window(
+                'Version {} is now available!'.format(new_version),
+                [[sg.Text('The new version {} is now available for download at\nhttps://github.com/Dooque/aoe2-de-in-game-rating-overlay.'.format(new_version), expand_x=True, background_color='#000000', justification='center', font=('Arial', 10))],],
+                keep_on_top=True,
+                background_color='#000000',
+                alpha_channel=1,
+                element_justification='center',
+                icon='./res/813780_icon.ico'
+            )
+            self._update_window.finalize()
+        else:
+            self._update_window = None
 
     def _load_configuration(self):
         try:
@@ -649,22 +678,7 @@ def previouse_version_cleanup():
 
 if __name__ == '__main__':
     try:
-        version_file = open(VERSION_FILE_CURRENT)
-        current_version = version_file.read()
-        version_file.close()
-
-        if sys.argv[2] == '1':
-            src_file = './tmp/aoe2-de-in-game-rating-overlay-{version}/update.exe'.format(version=current_version[1:])
-            dst_file = './aoe2de-in-game-rating-overlay.exe'
-            os.remove(dst_file)
-            shutil.move(src_file, dst_file)
-            shutil.rmtree('./tmp', ignore_errors=True)
-
-        if sys.argv[1] == '901014CF3D89AF19EBB94C5E06A768D63EDEF307E3C0A78F110810D0586B1604':
-            previouse_version_cleanup()
-            overlay = InGameRatingOverlay()
-            overlay.run()
-        else:
-            DebugMsg('[Thread-0] Invalid hash number.')
+        overlay = InGameRatingOverlay()
+        overlay.run()
     except:
         DebugMsg(str(print(traceback.format_exc())))
