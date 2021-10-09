@@ -29,7 +29,7 @@ def DebugMsg(msg, enabled):
 
 DebugMsg('¡Starting AoE2 DE In Game Rating Overlay!', True)
 
-CURRENT_VERSION = 'v0.2.1'
+CURRENT_VERSION = 'v1.0.0'
 
 LEFT = 0
 
