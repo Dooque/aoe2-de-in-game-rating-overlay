@@ -5,26 +5,41 @@
 # python -m pysimplegui-exemaker.pysimplegui-exemaker
 #
 
+from datetime import datetime
+import json
 import os
+import PySimpleGUI as sg
 import requests
+import shutil
 import sys
 import threading
 import time
+import traceback
 
-import PySimpleGUI as sg
+# If executable name ends with .py extension is because we're running it from source code.
+DEBUG = sys.argv[0].endswith('.py')
+DEBUG_FILE = 'aoe2de-igro.log'
+def DebugMsg(msg, enabled):
+    if enabled:
+        if DEBUG:
+            print(msg)
+        else:
+            with open(DEBUG_FILE, 'a') as file:
+                file.write(msg + '\n')
 
+DebugMsg('¡Starting AoE2 DE In Game Rating Overlay!', True)
+
+CURRENT_VERSION = 'v0.2.1'
 
 LEFT = 0
 
 RIGHT = 1
 
+VERSION_FILE_URL = 'https://raw.github.com/Dooque/aoe2-de-in-game-rating-overlay/master/VERSION'
+
 AOE2NET_URL = 'https://aoe2.net/api/'
 
-CONFIGURATION_FILE = './AOE2NET_PROFILE_ID.txt'
-
-FONT_TYPE = 'Liberation Mono Bold'
-
-FONT_SIZE = 10
+CONFIGURATION_FILE = './configuration.txt'
 
 NO_PADDING = ((0,0),(0,0))
 
@@ -36,15 +51,29 @@ COPYRIGHT_FONT = ('Arial', 8)
 
 COPYRIGHT_TEXT = u'\u00A9' + ' Dooque'
 
-REFRESH_TIMEOUT = 10 # Seconds
-
 NO_DATA_STRING = '----'
 
 MAX_NUMBER_OF_PLAYERS = 8
 
-SAVE_WINDOW_LOCATION_INTERVAL = 1 # Seconds.
+MAX_PLAYER_NAME_STRING_SIZE = 15
+
+MAX_PLAYER_ROW_STRING_SIZE = 32
 
 WINDOW_LOCATION_FILE = '{}\\aoe2de_in_game_rating_overlay-window_location.txt'
+
+TOOLTIP_FORMAT_STR = """{name}
+Civ: {civ} - [{rating1v1}] - ({ratingtg})
+1v1: G={games1v1}, S={streak1v1}, W={wins1v1}, L={losses1v1}, {ratio1v1}%
+TG : G={gamestg}, S={streaktg}, W={winstg}, L={lossestg}, {ratiotg}%"""
+
+ABOUT_STRING = """Afe of Empires II DE
+In Game Rating Overlay
+Version {version}
+{copyright}
+
+https://github.com/Dooque/aoe2-de-in-game-rating-overlay
+https://discord.gg/5Ke9Fa5G5x
+"""
 
 # This is not an error!!!
 JUSTIFICATION = {
@@ -53,6 +82,7 @@ JUSTIFICATION = {
 }
 
 COLOR_CODES = {
+    0: '#FFFFFF', # white
     1: '#7A7AFC', # blue
     2: '#FD3434', # red
     3: '#00ff00', # green
@@ -64,6 +94,7 @@ COLOR_CODES = {
 }
 
 COLOR_STRINGS = {
+    0: 'white',
     1: 'blue',
     2: 'red',
     3: 'green',
@@ -76,8 +107,6 @@ COLOR_STRINGS = {
 
 
 loading_progress = {'steps':1, 'current':0}
-
-sg.set_options(tooltip_font=('"{}" {}'.format(FONT_TYPE, FONT_SIZE)))
 
 
 class Rating():
@@ -101,15 +130,17 @@ class Rating():
 
 class Player():
 
-    def __init__(self, player, strings):
+    def __init__(self, player, strings, debug):
+        self._debug = debug
         self.profile_id = player['profile_id']
         self.steam_id = player['steam_id']
         self.name = player['name']
-        self.number = player['color']
-        self.color_number = player['color']
-        self.color_string = COLOR_STRINGS[player['color']]
-        self.color_code = COLOR_CODES[player['color']]
+        self.number = player['color'] if player['color'] > 0 else player['slot'] 
+        self.color_number = player['color'] 
+        self.color_string = COLOR_STRINGS[self.color_number]
+        self.color_code = COLOR_CODES[self.color_number]
         self.team = player['team']
+        self.slot = player['slot']
         civ = [ x['string'] for x in strings['civ'] if x['id'] == player['civ'] ]
         self.civ = civ.pop() if civ else NO_DATA_STRING
 
@@ -117,10 +148,10 @@ class Player():
             self.name = 'IA ' + self.civ
 
     def fetch_rating_information(self):
-        print('[Thread-1] Fetching 1v1 rating information for player {}'.format(self.name))
+        DebugMsg('[Thread-1] Fetching 1v1 rating information for player {}'.format(self.name), self._debug)
         if self.profile_id is not None:
             url = AOE2NET_URL + 'player/ratinghistory?game=aoe2de&leaderboard_id=3&count=1&profile_id={}'.format(self.profile_id)
-            print('[Thread-1] Fetching from:', url)
+            DebugMsg('[Thread-1] Fetching from: {}'.format(url), self._debug)
             rating_1v1 = requests.get(url).json()
             if rating_1v1:
                 self.rating_1v1 = Rating(rating_1v1[0])
@@ -130,10 +161,10 @@ class Player():
             self.rating_1v1 = Rating()
         loading_progress['current'] += 1
 
-        print('[Thread-1] Fetching TG rating information for player {}'.format(self.name))
+        DebugMsg('[Thread-1] Fetching TG rating information for player {}'.format(self.name), self._debug)
         if self.profile_id is not None:
             url = AOE2NET_URL + 'player/ratinghistory?game=aoe2de&leaderboard_id=4&count=1&profile_id={}'.format(self.profile_id)
-            print('[Thread-1] Fetching from:', url)
+            DebugMsg('[Thread-1] Fetching from: {}'.format(url), self._debug)
             rating_tg = requests.get(url).json()
             if rating_tg:
                 self.rating_tg = Rating(rating_tg[0])
@@ -146,7 +177,8 @@ class Player():
 
 class Match():
 
-    def __init__(self, match, strings):
+    def __init__(self, match, strings, debug):
+        self._debug = debug
         last_match = match['last_match']
 
         self.match_id = last_match['match_uuid']
@@ -154,19 +186,23 @@ class Match():
         self.map_type = [x['string'] for x in strings['map_type'] if x['id'] == last_match['map_type']].pop()
         self.number_of_players = last_match['num_players']
 
-        self.players = [ Player(player, strings) for player in last_match['players'] ]
+        self.players = [ Player(player, strings, self._debug) for player in last_match['players'] ]
 
     def fetch_rating_information(self):
         for player in self.players:
             player.fetch_rating_information()
 
+
 class PlayerInformationPrinter():
 
     def print(self, number, name, elo, tgelo, text_position):
+        name = name[:MAX_PLAYER_NAME_STRING_SIZE]
         if text_position == LEFT:
-            return '{name} ({tgelo}) [{elo}] P{number}'.format(name=name, tgelo=tgelo, elo=elo, number=number)
+            text = '{name} ({tgelo}) [{elo}] P{number}'.format(name=name, tgelo=tgelo, elo=elo, number=number)
+            return (' ' * (MAX_PLAYER_ROW_STRING_SIZE - len(text))) + text
         elif text_position == RIGHT:
-            return 'P{number} [{elo}] ({tgelo}) {name}'.format(number=number, elo=elo, tgelo=tgelo, name=name)
+            text = 'P{number} [{elo}] ({tgelo}) {name}'.format(number=number, elo=elo, tgelo=tgelo, name=name)
+            return text + (' ' * (MAX_PLAYER_ROW_STRING_SIZE - len(text)))
         else:
             raise Exception('Invalid text_position value: {}'.format(text_position))
 
@@ -174,6 +210,9 @@ class PlayerInformationPrinter():
 class InGameRatingOverlay():
 
     def __init__(self):
+        self._load_configuration()
+        self._check_for_new_version()
+
         self._strings = None
         self._is_server_ok = False
         self._event_refresh_game_information = threading.Event()
@@ -183,7 +222,7 @@ class InGameRatingOverlay():
         self._current_match = None
         self._finish = False
 
-        self._loading_information_window_text = sg.Text('Loading game information:   0%', pad=NO_PADDING, background_color=TEXT_BG_COLOR, justification='center', font=(FONT_TYPE, 14))
+        self._loading_information_window_text = sg.Text('Loading game information:   0%', expand_x=True, pad=NO_PADDING, background_color=TEXT_BG_COLOR, justification='center', font=(self._font_type, self._font_size))
         self._loading_information_window_location = (None, None)
         self._loading_information_window_layout = [
             [
@@ -199,7 +238,7 @@ class InGameRatingOverlay():
         self._main_window_last_location = self._get_last_windows_location()['main_window']
         self._main_window_columns = [[], []]
         self._main_window_layout = None
-        self._main_window_menu = ['menu', ['Refresh', 'Minimize', '---', 'Exit']]
+        self._main_window_menu = ['menu', ['Minimize', 'Refresh', '---', 'Users', [user['name'] for user in self._users], '---', 'About', 'Exit']]
         self._main_window = None
         self._update_main_window = False
 
@@ -208,7 +247,7 @@ class InGameRatingOverlay():
         self._minimized_window_menu = ['menu', ['Maximize', '---', 'Exit']]
         self._minimized_window_layout = [
             [
-                sg.Text('Ratings', pad=NO_PADDING, background_color=TEXT_BG_COLOR, justification='center', font=(FONT_TYPE, 14))
+                sg.Text('Ratings', expand_x=True, pad=NO_PADDING, background_color=TEXT_BG_COLOR, justification='center', font=(self._font_type, self._font_size))
             ],
             [
                 self._get_copyright_text()
@@ -219,26 +258,26 @@ class InGameRatingOverlay():
         self._create_loading_information_window()
         self._create_minimized_window()
 
-        print('[Thread-0] Starting "update_game_information" thread.')
+        DebugMsg('[Thread-0] Starting "update_game_information" thread.', self._debug)
         self._update_game_information_thread = threading.Thread(target=self._update_game_information)
         self._update_game_information_thread.start()
 
-        print('[Thread-0] Entering main loop...')
+        DebugMsg('[Thread-0] Entering main loop...', self._debug)
 
         number_of_retries = 0
 
         while not self._finish:
             if self._strings is None:
                 url = AOE2NET_URL + 'strings?game=aoe2de&language=en'
-                print('[Thread-0] Fetching from:', url)
+                DebugMsg('[Thread-0] Fetching from: {}'.format(url), self._debug)
                 try:
                     if number_of_retries != 0:
                         time.sleep(5)
-                        print('[Thread-0] Number of retries:', number_of_retries)    
+                        DebugMsg('[Thread-0] Number of retries: {}'.format(number_of_retries))   , self._debug 
                     self._strings = requests.get(url).json()
                     self._is_server_ok = True
                 except Exception as error:
-                    print('[Thread-0] request timeout... retrying...:', error)
+                    DebugMsg('[Thread-0] request timeout... retrying...: {}'.format(error), self._debug)
                     self._is_server_ok = False
                     number_of_retries += 1
 
@@ -259,19 +298,31 @@ class InGameRatingOverlay():
             e3, v3 = self._minimized_window.read(50)
 
             if any(True for x in (e1, e2, e3) if x in (sg.WIN_CLOSED, 'Exit')):
-                print('[Thread-0] finish = True')
+                DebugMsg('[Thread-0] finish = True', self._debug)
                 self._finish = True
                 self._event_refresh_game_information.set()
 
+            if e1 in [user['name'] for user in self._users]:
+                for user in self._users:
+                    if e1 == user['name']:
+                        user['current'] = 1
+                    else:
+                        user['current'] = 0
+                e1 = 'Refresh'
+
             if e1 == 'Refresh':
-                print('[Thread-0] Evenet: "Refresh now" generated.')
+                DebugMsg('[Thread-0] Evenet: "Refresh now" generated.', self._debug)
                 self._current_match = None
                 self._event_refresh_game_information.set()
 
             if e1 == 'Minimize':
                 self._main_window.disappear()
                 self._main_window.refresh()
-                self._minimized_window.move(int(self._minimized_window_last_location[0]), int(self._minimized_window_last_location[1]))
+                x, y = self._minimized_window_last_location
+                if (x, y) != (None, None):
+                    self._minimized_window.move(int(x), int(y))
+                else:
+                    self._minimized_window.move(x, y)
                 self._minimized_window.reappear()
                 self._minimized_window.refresh()
 
@@ -285,13 +336,25 @@ class InGameRatingOverlay():
                 self._main_window.reappear()
                 self._main_window.refresh()
 
+            if e1 == 'About':
+                about_window = sg.Window(
+                    'About!',
+                    [[sg.Text(ABOUT_STRING.format(version=CURRENT_VERSION, copyright=COPYRIGHT_TEXT), expand_x=True, background_color='#000000', justification='center', font=('Arial', 10))],],
+                    keep_on_top=True,
+                    background_color='#000000',
+                    alpha_channel=1,
+                    element_justification='center',
+                    icon='./res/813780_icon.ico'
+                )
+                about_window.finalize()
+
             self._save_windows_location()
 
-            if (self._fetching_data or not self._is_server_ok) and (self._loading_information_window is None):
+            if self._fetching_data or not self._is_server_ok:
                 if self._fetching_data:
-                    print('[Thread-0] Fetching new data')
+                    DebugMsg('[Thread-0] Fetching new data', self._debug)
                 elif not self._is_server_ok:
-                    print('[Thread-0] Server if offline')
+                    DebugMsg('[Thread-0] Server if offline', self._debug)
                 if self._main_window is not None:
                     self._main_window.close()
                     self._main_window = None
@@ -304,7 +367,7 @@ class InGameRatingOverlay():
                 self._fetching_data = False
 
             if self._update_main_window:
-                print('[Thread-0] Updating main window.')
+                DebugMsg('[Thread-0] Updating main window.', self._debug)
                 self._current_match_lock.acquire()
                 if self._main_window is not None:
                     self._main_window.close()
@@ -315,7 +378,7 @@ class InGameRatingOverlay():
                 self._loading_information_window.refresh()
                 self._current_match_lock.release()
 
-        print('[Thread-0] Main loop terminated!')
+        DebugMsg('[Thread-0] Main loop terminated!', self._debug)
 
         if self._main_window is not None:
             self._main_window.close()
@@ -324,21 +387,79 @@ class InGameRatingOverlay():
             self._loading_information_window.close()
             self._loading_information_window = None
 
-        print('[Thread-0] Waiting for update_game_information thread to terminate...')
+        DebugMsg('[Thread-0] Waiting for update_game_information thread to terminate...', self._debug)
         self._update_game_information_thread.join()
-        print('[Thread-0] update_game_information thread terminated!')
+        DebugMsg('[Thread-0] update_game_information thread terminated!', self._debug)
+
+    def _check_for_new_version(self):
+        now = datetime.now()
+        DebugMsg('[Thread-0] Time: {}'.format(now.strftime("%m/%d/%Y-%H:%M:%S")), True)
+        DebugMsg('[Thread-0] Running version {}.'.format(CURRENT_VERSION), True)
+
+        DebugMsg('[Thread-0] Checking for new version at: {}'.format(VERSION_FILE_URL), self._debug)
+        try:
+            new_version = requests.get(VERSION_FILE_URL).text
+            if new_version[0] != 'v':
+                new_version = CURRENT_VERSION
+        except:
+            new_version = CURRENT_VERSION
+            DebugMsg('[Thread-0] Failed to fetch new version.', self._debug)
+
+        if CURRENT_VERSION != new_version:
+            DebugMsg('[Thread-0] There is a new version available!', self._debug)
+            update_window = sg.Window(
+                'Version {} is now available!'.format(new_version),
+                [[sg.Text('The new version {} is now available for download at\nhttps://github.com/Dooque/aoe2-de-in-game-rating-overlay.'.format(new_version), expand_x=True, background_color='#000000', justification='center', font=('Arial', 10))],],
+                keep_on_top=True,
+                background_color='#000000',
+                alpha_channel=1,
+                element_justification='center',
+                icon='./res/813780_icon.ico'
+            )
+            update_window.finalize()
+
+    def _load_configuration(self):
+        try:
+            DebugMsg('[Thread-0] Loading configuration file at: {}'.format(CONFIGURATION_FILE), True)
+            f = open(CONFIGURATION_FILE)
+            conf = json.load(f)
+            f.close()
+            self._users = conf['users']
+            self._font_type = conf['font-type']
+            self._font_size = conf['font-size']
+            self._refresh_time = conf['refresh-time']
+            self._debug = conf['debug']
+            DebugMsg('[Thread-0] Configuration loaded successfully: {}'.format(conf), self._debug)
+            sg.set_options(tooltip_font=('"{}" {}'.format(self._font_type, self._font_size)))
+        except json.JSONDecodeError:
+            DebugMsg('[Thread-0] Configuration loading failed!', self._debug)
+            error_window = sg.Window(
+                'ERROR',
+                [[sg.Text('There is a syntax error in the configuration file.', expand_x=True, background_color='#ff0000', justification='center', font=('Arial', 14))],],
+                keep_on_top=True,
+                background_color='#ff0000',
+                alpha_channel=1,
+                element_justification='center',
+                icon='./res/813780_icon.ico'
+            )
+            error_window.finalize()
+
+            while True:
+                e1, v1 = error_window.read()
+                if e1 in (sg.WIN_CLOSED, 'Exit'):
+                    sys.exit(0)
 
     def _get_copyright_text(self):
-        return sg.Text(COPYRIGHT_TEXT, pad=NO_PADDING, background_color=TEXT_BG_COLOR, justification='center', font=COPYRIGHT_FONT)
+        return sg.Text(COPYRIGHT_TEXT, expand_x=True, pad=NO_PADDING, background_color=TEXT_BG_COLOR, justification='center', font=COPYRIGHT_FONT)
 
     def _create_loading_information_window(self):
-        print('[Thread-0] Creating loading_information_window...')
+        DebugMsg('[Thread-0] Creating loading_information_window...', self._debug)
         self._loading_information_window = sg.Window(
             None,
             self._loading_information_window_layout,
             no_titlebar=True,
             keep_on_top=True,
-            grab_anywhere=True,
+            grab_anywhere=False,
             background_color=BG_COLOR_INVISIBLE,
             transparent_color=BG_COLOR_INVISIBLE,
             alpha_channel=1,
@@ -353,10 +474,10 @@ class InGameRatingOverlay():
             sx, sy = self._loading_information_window.size
             self._loading_information_window.move(int(c - sx/2.0), int(y))
             self._loading_information_window.refresh()
-        print('[Thread-0] loading_information_window created!')
+        DebugMsg('[Thread-0] loading_information_window created!', self._debug)
 
     def _create_main_window(self):
-        print('[Thread-0] Creating main window...')
+        DebugMsg('[Thread-0] Creating main window...', self._debug)
         self._update_main_window_layout()
         self._main_window = sg.Window(
             None,
@@ -368,7 +489,8 @@ class InGameRatingOverlay():
             transparent_color=BG_COLOR_INVISIBLE,
             alpha_channel=1,
             element_justification='center',
-            right_click_menu=self._main_window_menu
+            right_click_menu=self._main_window_menu,
+            icon='./res/813780_icon.ico'
         )
         self._main_window.finalize()
         if self._main_window_last_location != (None, None):
@@ -376,10 +498,10 @@ class InGameRatingOverlay():
             sx, sy = self._main_window.size
             self._main_window.move(int(c - sx/2.0), int(y))
         self._main_window.refresh()
-        print('[Thread-0] Main window created!')
+        DebugMsg('[Thread-0] Main window created!', self._debug)
 
     def _create_minimized_window(self):
-        print('[Thread-0] Creating minimized window...')
+        DebugMsg('[Thread-0] Creating minimized window...', self._debug)
         self._minimized_window = sg.Window(
             None,
             self._minimized_window_layout,
@@ -393,13 +515,17 @@ class InGameRatingOverlay():
             right_click_menu=self._minimized_window_menu
         )
         self._minimized_window.finalize()
-        self._minimized_window.move(int(self._minimized_window_last_location[0]), int(self._minimized_window_last_location[1]))
+        x, y = self._minimized_window_last_location
+        if (x, y) != (None, None):
+            self._minimized_window.move(int(x), int(y))
+        else:
+            self._minimized_window.move(x, y)
         self._minimized_window.refresh()
         self._minimized_window.disappear()
-        print('[Thread-0] Minimized window created!')
+        DebugMsg('[Thread-0] Minimized window created!', self._debug)
 
     def _update_main_window_layout(self):
-        print('[Thread-0] Updating main window layout...')
+        DebugMsg('[Thread-0] Updating main window layout...', self._debug)
         self._main_window_layout = [
             [
                 sg.Column(self._main_window_columns[LEFT], pad=NO_PADDING, background_color=BG_COLOR_INVISIBLE, vertical_alignment='top', element_justification='right'),
@@ -424,7 +550,7 @@ class InGameRatingOverlay():
         except FileNotFoundError:
             location = {'main_window':(None, None), 'minimized_window':(None, None)}
 
-        print('[Thread-0] Getting last windows location:', location)
+        DebugMsg('[Thread-0] Getting last windows location: {}'.format(location), self._debug)
 
         return location
 
@@ -432,57 +558,54 @@ class InGameRatingOverlay():
         if self._main_window is not None:
             x, y = self._main_window.CurrentLocation()
             sx, sy = self._main_window.size
-        else:
-            x, y = self._loading_information_window.CurrentLocation()
-            sx, sy = self._loading_information_window.size
-        main_current_location = (x + sx/2.0, y)
-        minimized_current_location = self._minimized_window.CurrentLocation()
-        if (main_current_location != self._main_window_last_location) or (minimized_current_location != self._minimized_window_last_location):
-            print('[Thread-0] Saving main window location:', main_current_location)
-            print('[Thread-0] Saving minimized window location:', minimized_current_location)
-            self._main_window_last_location = main_current_location
-            self._minimized_window_last_location = minimized_current_location
-            location_file_path = WINDOW_LOCATION_FILE.format(os.getenv('USERPROFILE'))
-            location_file = open(location_file_path, 'w')
-            location_file.write(str(main_current_location[0]) + ',' + str(main_current_location[1]) + '\n')
-            location_file.write(str(minimized_current_location[0]) + ',' + str(minimized_current_location[1]))
-            location_file.close()
+            main_current_location = (x + sx/2.0, y)
+            minimized_current_location = self._minimized_window.CurrentLocation()
+            if (main_current_location != self._main_window_last_location) or (minimized_current_location != self._minimized_window_last_location):
+                DebugMsg('[Thread-0] Saving main window location: {}'.format(main_current_location), self._debug)
+                DebugMsg('[Thread-0] Saving minimized window location: {}'.format(minimized_current_location), self._debug)
+                self._main_window_last_location = main_current_location
+                self._minimized_window_last_location = minimized_current_location
+                location_file_path = WINDOW_LOCATION_FILE.format(os.getenv('USERPROFILE'))
+                location_file = open(location_file_path, 'w')
+                location_file.write(str(main_current_location[0]) + ',' + str(main_current_location[1]) + '\n')
+                location_file.write(str(minimized_current_location[0]) + ',' + str(minimized_current_location[1]))
+                location_file.close()
 
     def _update_game_information(self):
         while not self._finish:
-            print('[Thread-1] update_game_information thread loop...')
+            DebugMsg('[Thread-1] update_game_information thread loop...', self._debug)
 
             if self._strings is None:
-                print('[Thread-1] Server connection has not been established. Waiting for 1 second.')
+                DebugMsg('[Thread-1] Server connection has not been established. Waiting for 1 second.', self._debug)
                 time.sleep(1)
                 continue
 
-            # Read AoE2.net profile ID from configuration file.
-            configuration_file = open(CONFIGURATION_FILE, 'r')
-            AOE2NET_PROFILE_ID = int(configuration_file.read())
-            configuration_file.close()
-            print('[Thread-1] AOE2NET_PROFILE_ID:', AOE2NET_PROFILE_ID)
+            # Read AoE2.net profile ID from configuration.
+            for user in self._users:
+                if user['current']:
+                    profile_id = user['ID']
+                    DebugMsg('[Thread-1] Current user: Name = {name} - Profile ID = {id}'.format(name=user['name'], id=profile_id), self._debug)
 
             # Get Last/Current match.
-            print('[Thread-1] Fetching game data...')
+            DebugMsg('[Thread-1] Fetching game data...', self._debug)
             try:
-                url = AOE2NET_URL + 'player/lastmatch?game=aoe2de&profile_id={}'.format(AOE2NET_PROFILE_ID)
-                print('[Thread-1] Fetching from:', url)
+                url = AOE2NET_URL + 'player/lastmatch?game=aoe2de&steam_id={}'.format(profile_id)
+                DebugMsg('[Thread-1] Fetching from: {}'.format(url), self._debug)
                 match_data = requests.get(url).json()
                 self._is_server_ok = True
             except Exception as error:
-                print('[Thread-1] request timeout... retrying...:', error)
+                DebugMsg('[Thread-1] request timeout... retrying...: {}'.format(error), self._debug)
                 self._is_server_ok = False
-                self._event_refresh_game_information.wait(REFRESH_TIMEOUT)
+                self._event_refresh_game_information.wait(self._refresh_time)
                 self._event_refresh_game_information.clear()
                 continue
-            new_match = Match(match_data, self._strings)
-            print('[Thread-1] Fetching game data done!')
+            new_match = Match(match_data, self._strings, self._debug)
+            DebugMsg('[Thread-1] Fetching game data done!', self._debug)
 
             if (self._current_match is None):
-                print('[Thread-1] New match id: {}'.format(new_match.match_id))            
+                DebugMsg('[Thread-1] New match id: {}'.format(new_match.match_id), self._debug)  
             else:
-                print('[Thread-1] Current match id: {} - New match id: {}'.format(self._current_match.match_id, new_match.match_id))
+                DebugMsg('[Thread-1] Current match id: {} - New match id: {}'.format(self._current_match.match_id, new_match.match_id), self._debug)
 
             if (self._current_match is None) or (self._current_match.match_id != new_match.match_id):
                 self._fetching_data = True
@@ -490,24 +613,29 @@ class InGameRatingOverlay():
                 loading_progress['current'] = 0
                 loading_progress['steps'] = new_match.number_of_players * 2
 
-                print('[Thread-1] Fetching rating information...')
+                DebugMsg('[Thread-1] Fetching rating information...', self._debug)
                 try:
                     new_match.fetch_rating_information()
                     self._is_server_ok = True
                 except Exception as error:
-                    print('[Thread-1] request timeout... retrying...:', error)
+                    DebugMsg('[Thread-1] request timeout... retrying...: {}'.format(error), self._debug)
                     self._is_server_ok = False
-                    self._event_refresh_game_information.wait(REFRESH_TIMEOUT)
+                    self._event_refresh_game_information.wait(self._refresh_time)
                     self._event_refresh_game_information.clear()
                     continue
-                print('[Thread-1] Fetching rating information done!')
+                DebugMsg('[Thread-1] Fetching rating information done!', self._debug)
 
                 self._current_match_lock.acquire()
                 self._current_match = new_match
 
                 self._main_window_columns = [[], []]
 
-                print('[Thread-1] Generating players rating information...')
+                use_slots = any(player.color_number <= 0 for player in self._current_match.players)
+                use_team = all(player.team > 0 for player in self._current_match.players)
+                DebugMsg('[Thread-1] use_slots = {}'.format(use_slots), self._debug)
+                DebugMsg('[Thread-1] use_team = {}'.format(use_team), self._debug)
+
+                DebugMsg('[Thread-1] Generating players rating information...', self._debug)
                 max_text_size = 0
                 for player in self._current_match.players:
                     player.text = self._player_info_printer.print(
@@ -515,16 +643,14 @@ class InGameRatingOverlay():
                         player.name,
                         player.rating_1v1.rating,
                         player.rating_tg.rating,
-                        player.team % 2
+                        (player.team if use_team else (player.number if not use_slots else player.slot)) % 2
                     )
                     max_text_size = max_text_size if max_text_size > len(player.text) else len(player.text)
 
-                auxiliar_counter = 0
                 number_of_players = self._current_match.number_of_players
                 for player in self._current_match.players:
                     if ((number_of_players == 2) or (number_of_players == 4)) and any(p.team == -1 for p in self._current_match.players):
-                        column = auxiliar_counter
-                        auxiliar_counter += 1
+                        column = player.slot % 2
                     else:
                         column = player.team % 2
 
@@ -533,33 +659,38 @@ class InGameRatingOverlay():
                     else: # column == RIGH:
                         player.text = player.text + ' ' * (max_text_size - len(player.text))
 
-                    tooltip = 'Civ: {} - [{}] - ({})\n1v1: G:{}\tS:{:+}\tW:{}\tL:{}\tR:{}%\nTG:  G:{}\tS:{:+}\tW:{}\tL:{}\tR:{}%'.format(
-                        player.civ, player.rating_1v1.rating, player.rating_tg.rating,
-                        player.rating_1v1.games, player.rating_1v1.streak, player.rating_1v1.num_wins, player.rating_1v1.num_losses, player.rating_1v1.win_ratio,
-                        player.rating_tg.games, player.rating_tg.streak, player.rating_tg.num_wins, player.rating_tg.num_losses, player.rating_tg.win_ratio
+                    tooltip = TOOLTIP_FORMAT_STR.format(
+                        name=player.name,
+                        civ=player.civ, rating1v1=player.rating_1v1.rating, ratingtg=player.rating_tg.rating,
+                        games1v1=player.rating_1v1.games, gamestg=player.rating_tg.games,
+                        streak1v1=player.rating_1v1.streak, streaktg=player.rating_tg.streak,
+                        wins1v1=player.rating_1v1.num_wins, winstg=player.rating_tg.num_wins,
+                        losses1v1=player.rating_1v1.num_losses, lossestg=player.rating_tg.num_losses,
+                        ratio1v1=player.rating_1v1.win_ratio, ratiotg=player.rating_tg.win_ratio
                     )
 
                     text = sg.Text(
                         player.text,
+                        expand_x=True,
                         pad=NO_PADDING,
                         background_color=TEXT_BG_COLOR,
                         justification=JUSTIFICATION[column],
-                        font=(FONT_TYPE, FONT_SIZE),
-                        text_color=COLOR_CODES[player.color_number],
+                        font=(self._font_type, self._font_size),
+                        text_color=COLOR_CODES[player.color_number if not use_slots else player.slot],
                         tooltip=tooltip
                     )
 
                     self._main_window_columns[column].append([text])
-                print('[Thread-1] Generating players rating information done!')
+                DebugMsg('[Thread-1] Generating players rating information done!', self._debug)
 
                 if not self._finish:
-                    print('[Thread-1] update_main_window = True')
+                    DebugMsg('[Thread-1] update_main_window = True', self._debug)
                     self._update_main_window = True
                 self._current_match_lock.release()
 
             if not self._finish:
-                print('[Thread-1] Waiting for {} seconds to next update or for "Refresh now" event.'.format(REFRESH_TIMEOUT))
-                self._event_refresh_game_information.wait(REFRESH_TIMEOUT)
+                DebugMsg('[Thread-1] Waiting for {} seconds to next update or for "Refresh now" event.'.format(self._refresh_time), self._debug)
+                self._event_refresh_game_information.wait(self._refresh_time)
                 self._event_refresh_game_information.clear()
 
 
@@ -572,6 +703,8 @@ def previouse_version_cleanup():
 
 
 if __name__ == '__main__':
-    previouse_version_cleanup()
-    overlay = InGameRatingOverlay()
-    overlay.run()
+    try:
+        overlay = InGameRatingOverlay()
+        overlay.run()
+    except:
+        DebugMsg(str(print(traceback.format_exc())), True)

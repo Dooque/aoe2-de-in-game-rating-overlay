@@ -2,90 +2,130 @@
 
 [English](./README.md) | [Español](./README.es.md)
 
+Join discussion on [Discord](https://discord.gg/5Ke9Fa5G5x)
+
 ## Download
 
-You can download the latest release from [here](https://github.com/Dooque/aoe2-de-in-game-rating-overlay/archive/refs/tags/v0.2.1.zip).
+You can download the latest release from [here](https://github.com/Dooque/aoe2-de-in-game-rating-overlay/archive/refs/tags/v1.0.0.zip).
 
 ## Introduction
 
 This is an in game rating overlay which shows on top of the screen the RM 1v1 ELO and RM TG ELO for all players in a multiplayer game.
 
-It currently works only for "Random Map" games.
+It currently works only for "Random Map" games. In future versions we will include DM and EW.
 
 You can drag the text anywhere in the in the screen. The program will remember the position in the screen for the next time.
 
 The 1v1 ELO is shown between *[ ]* and the TG ELO is shown between *( )*.
 
-![](./res/picture1.png)
-![](./res/picture2.png)
-![](./res/picture3.png)
-![](./res/picture4.png)
+![](./res/image-1.png)
+![](./res/image-2.png)
 
-Also it is possible to minimize the window. Right click on the window and click on "Minimize".
+You can see extended players information if you let the mouse pointer over the name of a player:
+
+![](./res/image-3.png)
+
+You can select among multiple player profiles by right clicking on the window and selecting the name of player in the "Users" menu:
+
+![](./res/image-4.png)
+
+To do that you need to add the name and the Steam ID of every player into the `configuration.txt` file:
+
+```json
+{
+  "users": [
+    {"name":"Dooque", "ID":76561198982469653, "current":1},
+    {"name":"Mendieta", "ID":76561199099265930, "current":0},
+    {"name":"MentaPeperina", "ID":76561199203185042, "current":0}
+  ],
+}
+```
+
+It is also possible to minimize the window. Right click on the window and click on "Minimize".
+
+![](./res/image-5.png)
+![](./res/image-6.png)
 
 The position of the minimized window is independent of the maximized window, so for example, in between games you can put the minimize window in a position where it does not collide with the game's menu.
 
-![](./res/picture6.png)
-![](./res/picture5.png)
-![](./res/picture7.png)
+To maximize the window just right click and pick "Maximize".
 
-You can also see extended players information if you let the mouse pointer over the name of a player:
+![](./res/image-7.png)
 
-![](./res/picture12.png)
+There are more menu options. Just right click and take a look at them.
+
+![](./res/image-8.png)
 
 ## Installation & Configuration
 
-The program requires no installation. Just extract the ZIP file, configure your profile ID, install the font, and run the `aoe2de-mp-ratings.exe` file.
+The program requires no installation. Just extract the ZIP file, configure your [Steam profile ID](https://steamcommunity.com/login/home/?goto=) into the `configuration.txt` file and then run the `aoe2de-in-game-rating-overlay.exe` file.
 
-You can install the font by double clicking on the `LiberationMono-Bold.ttf` file, and then press `Install` button. Once installed you can close the Font window.
+In the `configuration.txt` file you can also change the font type and size, and the refresh time.
 
-The only required configuration you need is to write your [AoE2.net](https://aoe2.net) profile ID into the `AOE2NET_PROFILE_ID.txt` file.
+```json
+{
+  "users": [
+    {"name":"Dooque", "ID":76561198982469653, "current":1},
+    {"name":"Mendieta", "ID":76561199099265930, "current":0},
+    {"name":"MentaPeperina", "ID":76561199203185042, "current":0}
+  ],
+  "font-type":"Arial",
+  "font-size":10,
+  "refresh-time":10,
+  "debug":false
+}
+```
+
+> NOTE: `refresh-time` time is in seconds.
 
 ### How to close the program?
 
 Right click and the click on `Exit`.
 
-### How do I get my AoE2.net profile ID?
+### How do I get my Steam profile ID?
 
-Go to https://aoe2.net/.
+Go to https://steamcommunity.com/login/home/?goto= and login.
 
-Click on "Leaderboards" and pick "Random Map":
+![](./res/image-9.png)
 
-![](./res/picture8.png)
+Then look at the URL bar, there you will find you Steam profile ID.
 
-On the search section enter your Steam profile name. Once you see yourself in the table click on your name:
+![](./res/image-10.png)
 
-> NOTE: If you don't appear in the list it is because you haven't play at least 10 ranked games. You need to play 10 ranked games to have an AoE2.net profile ID.
-
-![](./res/picture9.png)
-
-Click on the "Profile" button at the bottom right of the window:
-
-![](./res/picture10.png)
-
-Then you will see the profile ID in the URL section:
-
-![](./res/picture11.png)
-
-Copy and paste it into the `AOE2NET_PROFILE_ID.txt` file.
-
-And that's it, you can now run the `aoe2de-mp-ratings.exe` file.
+Copy and paste it into the configuration file and that's all you need, you can now go ahead and execute the program by double clicking on the `aoe2de-in-game-rating-overlay.exe` file.
 
 ## What's next?
 
-1. Be able to change the text color, font and size from a configuration file.
+1. Be able to change the text color from configuration file.
 2. Be able to set a background with solid color from a configuration file.
 3. Show the text with the "self (blue) / ally (yellow) / enemy (red)" color mode.
-4. Make configurable the refresh time.
-5. Select user using the menu.
+4. Make it work for Empire Wars.
+5. Make it work for Death Match.
+6. Make the application remember the selected player.
+
+## Known Issues
+
+1. After server updates or new game releases the application may fail to connect to the servers. WORKAROUND: So far the problem seems to vanish after about 24 hours.
+2. If you have an extra monitor connected to the PC, and you display the application on that screen, and the you disconnect the monitor the application will still be display in the position of the previous screen, so you are not going to see the application. WORKAROUND: Delete the file `C:\Users\USER\aoe2de_in_game_rating_overlay-window_location.txt`.
 
 ## CHANGELOG
+
+### v1.0.0
+
+* Replace the usage of aoe2.net profile ID by Steam ID.
+* Now the application can manage multiple players profiles.
+* Checks and inform about new versions.
+* Players' name are now of fixed size so the window size is smaller.
+* Updated the extended player information (when the mouse goes over the player name) so it is smaller.
+* Fixed an issue with the "Refresh" button.
+* Fixed issues related to the match information when it is incomplete in terms of team and color information.
+* Fixed an issue where the main window moves some pixels after refreshing.
 
 ### v0.2.1
 
 * Fixed an issue where the program crash if the server is not available.
 * Fixed an issue where the windows position change when switching between Minimize and Maximize.
-* Fixed an issue where the when clicking on "Refresh" button the data was not being updated until a new game was started.
+* Fixed an issue when clicking on "Refresh" button the data was not being updated until a new game was started.
 
 ### v0.2.0
 
@@ -121,3 +161,7 @@ And that's it, you can now run the `aoe2de-mp-ratings.exe` file.
   * Random Map Team Game streak.
 * Show some of the information in a transparent window of fixed text font (Arial), size (14) and color. (white).
 * The program fetch for a new game every a fixed amount of time (10 seconds).
+
+- - -
+
+*Age of Empires II Definitive Edition © Microsoft Corporation. Age of Empires II DE - In Game Rating Overlay was created under [Microsoft's "Game Content Usage Rules"](https://www.xbox.com/en-US/developers/rules) using assets from Age of Empires II Definitive Edition, and it is not endorsed by or affiliated with Microsoft.*
