@@ -107,6 +107,7 @@ Copia y pega el número en el archvio de configuración y eso es todo, ahora ya 
 
 1. Luego de actualizaciones de los servidores o del juego la aplicación puede tener problemas para conectarse a los servidores. SOLUCIÓN: El problema parese desaparecer luego de alrededor de 24 horas.
 2. Si hay un segundo monitor conectado a la PC, y la aplicación se muestra en ese monitor, y luego se desconecta el monitor, la aplicación se seguirá mostrando en la posición de ese monitor, por lo que no se podrá ver la aplicación. SOLUCIÓN: Eliminar el archivo `C:\Users\USER\aoe2de_in_game_rating_overlay-window_location.txt`.
+3. La aplicación se queda en el estado "Waiting for server" si el jugador seleccionado no tiene nungún juego en el modo de multijugador.
 
 ## HISTORIAL DE CAMBIOS
 

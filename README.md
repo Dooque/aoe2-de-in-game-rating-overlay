@@ -107,6 +107,7 @@ Copy and paste it into the configuration file and that's all you need, you can n
 
 1. After server updates or new game releases the application may fail to connect to the servers. WORKAROUND: So far the problem seems to vanish after about 24 hours.
 2. If you have an extra monitor connected to the PC, and you display the application on that screen, and the you disconnect the monitor the application will still be display in the position of the previous screen, so you are not going to see the application. WORKAROUND: Delete the file `C:\Users\USER\aoe2de_in_game_rating_overlay-window_location.txt`.
+3. The application stays in "Waiting for server" state if the selected player doesn't have any game in multiplayer mode.
 
 ## CHANGELOG
 
