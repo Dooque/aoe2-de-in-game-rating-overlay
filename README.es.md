@@ -80,6 +80,7 @@ Y eso es todo, ya puede ejecutar `aoe2de-mp-ratings.exe`.
 3. Mostrar el texto con el modo de colores aliado/enemigo "azul/amarillo/rojo".
 4. Hacer que funcione para Guerras Imperiales.
 5. Hacer que funcione para Combate Total.
+6. Hacer que la aplicación recuende el jugador seleccionado.
 
 ## Peroblemas Conocidos
 

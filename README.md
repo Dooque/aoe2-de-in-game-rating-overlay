@@ -12,66 +12,85 @@ You can download the latest release from [here](https://github.com/Dooque/aoe2-d
 
 This is an in game rating overlay which shows on top of the screen the RM 1v1 ELO and RM TG ELO for all players in a multiplayer game.
 
-It currently works only for "Random Map" games.
+It currently works only for "Random Map" games. In future versions we will include DM and EW.
 
 You can drag the text anywhere in the in the screen. The program will remember the position in the screen for the next time.
 
 The 1v1 ELO is shown between *[ ]* and the TG ELO is shown between *( )*.
 
-![](./res/picture1.png)
-![](./res/picture2.png)
-![](./res/picture3.png)
-![](./res/picture4.png)
+![](./res/image-1.png)
+![](./res/image-2.png)
 
-Also it is possible to minimize the window. Right click on the window and click on "Minimize".
+You can see extended players information if you let the mouse pointer over the name of a player:
+
+![](./res/image-3.png)
+
+You can select among multiple player profiles by right clicking on the window and selecting the name of player in the "User" menu:
+
+![](./res/image-4.png)
+
+To do that you need to add the name and the Steam ID of every player into the `configuration.txt` file:
+
+```json
+{
+  "users": [
+    {"name":"Dooque", "ID":76561198982469653, "current":1},
+    {"name":"Mendieta", "ID":76561199099265930, "current":0},
+    {"name":"MentaPeperina", "ID":76561199203185042, "current":0}
+  ],
+}
+```
+
+It is also possible to minimize the window. Right click on the window and click on "Minimize".
+
+![](./res/image-5.png)
+![](./res/image-6.png)
 
 The position of the minimized window is independent of the maximized window, so for example, in between games you can put the minimize window in a position where it does not collide with the game's menu.
 
-![](./res/picture6.png)
-![](./res/picture5.png)
-![](./res/picture7.png)
+To maximize the window just right click and pick "Maximize".
 
-You can also see extended players information if you let the mouse pointer over the name of a player:
+![](./res/image-7.png)
 
-![](./res/picture12.png)
+There are more menu options. Just right click and take a look at them.
+
+![](./res/image-8.png)
 
 ## Installation & Configuration
 
-The program requires no installation. Just extract the ZIP file, configure your profile ID, install the font, and run the `aoe2de-mp-ratings.exe` file.
+The program requires no installation. Just extract the ZIP file, configure your [Steam profile ID](https://steamcommunity.com/login/home/?goto=) into the `configuration.txt` file and then run the `aoe2de-mp-ratings.exe` file.
 
-You can install the font by double clicking on the `LiberationMono-Bold.ttf` file, and then press `Install` button. Once installed you can close the Font window.
+In the `configuration.txt` file you can also change the font type and size, and the refresh time.
 
-The only required configuration you need is to write your [AoE2.net](https://aoe2.net) profile ID into the `AOE2NET_PROFILE_ID.txt` file.
+```json
+{
+  "users": [
+    {"name":"Dooque", "ID":76561198982469653, "current":1},
+    {"name":"Mendieta", "ID":76561199099265930, "current":0},
+    {"name":"MentaPeperina", "ID":76561199203185042, "current":0}
+  ],
+  "font-type":"Arial",
+  "font-size":10,
+  "refresh-time":10,
+  "debug":true
+}
+```
 
 ### How to close the program?
 
 Right click and the click on `Exit`.
 
-### How do I get my AoE2.net profile ID?
+### How do I get my Steam profile ID?
 
-Go to https://aoe2.net/.
+Go to https://steamcommunity.com/login/home/?goto= and login.
 
-Click on "Leaderboards" and pick "Random Map":
+![](./res/image-9.png)
 
-![](./res/picture8.png)
+Then look at the URL bar, there you will find you Steam profile ID>
 
-On the search section enter your Steam profile name. Once you see yourself in the table click on your name:
+![](./res/image-10.png)
 
-> NOTE: If you don't appear in the list it is because you haven't play at least 10 ranked games. You need to play 10 ranked games to have an AoE2.net profile ID.
-
-![](./res/picture9.png)
-
-Click on the "Profile" button at the bottom right of the window:
-
-![](./res/picture10.png)
-
-Then you will see the profile ID in the URL section:
-
-![](./res/picture11.png)
-
-Copy and paste it into the `AOE2NET_PROFILE_ID.txt` file.
-
-And that's it, you can now run the `aoe2de-mp-ratings.exe` file.
+Copy and paste it into the configuration file and that's all you need, you can now go ahead and execute the program by double clicking on the `aoe2de-mp-ratings.exe` file.
 
 ## What's next?
 
@@ -80,6 +99,7 @@ And that's it, you can now run the `aoe2de-mp-ratings.exe` file.
 3. Show the text with the "self (blue) / ally (yellow) / enemy (red)" color mode.
 4. Make it work for Empire Wars.
 5. Make it work for Death Match.
+6. Make the application remember the selected player.
 
 ## Known Issues
 
