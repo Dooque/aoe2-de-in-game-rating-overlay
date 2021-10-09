@@ -58,7 +58,7 @@ There are more menu options. Just right click and take a look at them.
 
 ## Installation & Configuration
 
-The program requires no installation. Just extract the ZIP file, configure your [Steam profile ID](https://steamcommunity.com/login/home/?goto=) into the `configuration.txt` file and then run the `aoe2de-mp-ratings.exe` file.
+The program requires no installation. Just extract the ZIP file, configure your [Steam profile ID](https://steamcommunity.com/login/home/?goto=) into the `configuration.txt` file and then run the `aoe2de-in-game-rating-overlay.exe` file.
 
 In the `configuration.txt` file you can also change the font type and size, and the refresh time.
 
@@ -92,7 +92,7 @@ Then look at the URL bar, there you will find you Steam profile ID.
 
 ![](./res/image-10.png)
 
-Copy and paste it into the configuration file and that's all you need, you can now go ahead and execute the program by double clicking on the `aoe2de-mp-ratings.exe` file.
+Copy and paste it into the configuration file and that's all you need, you can now go ahead and execute the program by double clicking on the `aoe2de-in-game-rating-overlay.exe` file.
 
 ## What's next?
 

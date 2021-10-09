@@ -25,7 +25,7 @@ Se puede ver información extendida de cada jugador dejando el puntero del mouse
 
 ![](./res/image-3.png)
 
-Puedes elegir entre perfiles de múltiples jugadores haciendo clic derecho sobre la ventana y seleccionando el nombre del jugador en el menú "Usuers".
+Puedes elegir entre perfiles de múltiples jugadores haciendo clic derecho sobre la ventana y seleccionando el nombre del jugador en el menú "Users".
 
 ![](./res/image-4.png)
 
@@ -58,7 +58,7 @@ Hay más opciones en el menú, simplemente has clic derecho y échale un vistazo
 
 ## Instalación & Configuración
 
-El programa no requiere instalación. Solo hay que extraer el archivo ZIP, configurar tu [ID de perfil de Steam](https://steamcommunity.com/login/home/?goto=) en el archivo `configuration.txt`, y ejecutar el archivo `aoe2de-mp-ratings.exe`
+El programa no requiere instalación. Solo hay que extraer el archivo ZIP, configurar tu [ID de perfil de Steam](https://steamcommunity.com/login/home/?goto=) en el archivo `configuration.txt`, y ejecutar el archivo `aoe2de-in-game-rating-overlay.exe`
 
 En el archivo de configuración `configuration.txt` además puedes modificar el tipo y tamaño de la fuente, como así también el tiempo de actualización "refresh-time".
 
@@ -82,7 +82,7 @@ En el archivo de configuración `configuration.txt` además puedes modificar el 
 
 Clic derecho en la ventana y luego clic en `Exit`.
 
-### Cómo obtengo mi ID de perfil de AoE2.net?
+### Cómo obtengo mi ID de perfil de Steam?
 
 Dirígete a https://steamcommunity.com/login/home/?goto= e inicia sesión.
 
@@ -92,7 +92,7 @@ Mira en la parte de arriba en la bara con la URL, allí encontrarás tu ID de pe
 
 ![](./res/image-10.png)
 
-Copia y pega el número en el archvio de configuración y eso es todo, ahora ya puedes ejecutar el programa haciendo soble clic en el archivo `aoe2de-mp-ratings.exe`.
+Copia y pega el número en el archvio de configuración y eso es todo, ahora ya puedes ejecutar el programa haciendo doble clic en el archivo `aoe2de-in-game-rating-overlay.exe`.
 
 ## Qué sigue?
 
