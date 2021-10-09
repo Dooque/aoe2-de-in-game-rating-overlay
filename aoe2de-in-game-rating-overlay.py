@@ -35,7 +35,7 @@ LEFT = 0
 
 RIGHT = 1
 
-VERSION_FILE_URL = 'https://raw.github.com/Dooque/aoe2-de-in-game-rating-overlay/master/VERSION'
+VERSION_FILE_URL = 'https://raw.github.com/Dooque/aoe2-de-in-game-rating-overlay/main/VERSION'
 
 AOE2NET_URL = 'https://aoe2.net/api/'
 
@@ -405,7 +405,7 @@ class InGameRatingOverlay():
             new_version = CURRENT_VERSION
             DebugMsg('[Thread-0] Failed to fetch new version.', self._debug)
 
-        if CURRENT_VERSION != new_version:
+        if CURRENT_VERSION < new_version:
             DebugMsg('[Thread-0] There is a new version available!', self._debug)
             update_window = sg.Window(
                 'Version {} is now available!'.format(new_version),
