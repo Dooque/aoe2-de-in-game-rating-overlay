@@ -25,7 +25,7 @@ You can see extended players information if you let the mouse pointer over the n
 
 ![](./res/image-3.png)
 
-You can select among multiple player profiles by right clicking on the window and selecting the name of player in the "Users" menu:
+You can select among multiple player profiles by right clicking on the window and selecting the name of the player in the "Users" menu:
 
 ![](./res/image-4.png)
 
@@ -80,7 +80,7 @@ In the `configuration.txt` file you can also change the font type and size, and 
 
 ### How to close the program?
 
-Right click and the click on `Exit`.
+Right click and then click on `Exit`.
 
 ### How do I get my Steam profile ID?
 
