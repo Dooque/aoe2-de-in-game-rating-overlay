@@ -6,7 +6,7 @@ Join discussion on [Discord](https://discord.gg/5Ke9Fa5G5x)
 
 ## Download
 
-You can download the latest release from [here](https://github.com/Dooque/aoe2-de-in-game-rating-overlay/archive/refs/tags/v0.2.1.zip).
+You can download the latest release from [here](https://github.com/Dooque/aoe2-de-in-game-rating-overlay/archive/refs/tags/v1.0.0.zip).
 
 ## Introduction
 
@@ -25,7 +25,7 @@ You can see extended players information if you let the mouse pointer over the n
 
 ![](./res/image-3.png)
 
-You can select among multiple player profiles by right clicking on the window and selecting the name of player in the "User" menu:
+You can select among multiple player profiles by right clicking on the window and selecting the name of player in the "Users" menu:
 
 ![](./res/image-4.png)
 
@@ -72,9 +72,11 @@ In the `configuration.txt` file you can also change the font type and size, and 
   "font-type":"Arial",
   "font-size":10,
   "refresh-time":10,
-  "debug":true
+  "debug":false
 }
 ```
+
+> NOTE: `refresh-time` time is in seconds.
 
 ### How to close the program?
 
@@ -86,7 +88,7 @@ Go to https://steamcommunity.com/login/home/?goto= and login.
 
 ![](./res/image-9.png)
 
-Then look at the URL bar, there you will find you Steam profile ID>
+Then look at the URL bar, there you will find you Steam profile ID.
 
 ![](./res/image-10.png)
 
