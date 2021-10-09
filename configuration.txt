@@ -7,5 +7,5 @@
 	"font-type":"Arial",
 	"font-size":10,
 	"refresh-time":10,
-	"debug":true
+	"debug":false
 }
