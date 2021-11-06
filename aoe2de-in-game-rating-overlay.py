@@ -391,6 +391,22 @@ class InGameRatingOverlay():
         self._update_game_information_thread.join()
         DebugMsg('[Thread-0] update_game_information thread terminated!', self._debug)
 
+    def _get_local_steam_ids(self):
+        """By https://github.com/didierrenardub."""
+        steam_ids = []
+        aoe_path = os.path.join(os.environ['USERPROFILE'], 'Games', 'Age of Empires 2 DE')
+
+        for dir in os.listdir(aoe_path):
+            steam_id = None
+            try:
+                steam_id = int(dir)
+            except ValueError:
+                pass
+            if steam_id is not None and steam_id > 0:
+                steam_ids.append(steam_id)
+
+        return steam_ids
+
     def _check_for_new_version(self):
         now = datetime.now()
         DebugMsg('[Thread-0] Time: {}'.format(now.strftime("%m/%d/%Y-%H:%M:%S")), True)
