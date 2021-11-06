@@ -6,6 +6,7 @@
 #
 
 from datetime import datetime
+import aoe2netapi
 import json
 import os
 import PySimpleGUI as sg
@@ -66,7 +67,7 @@ Civ: {civ} - [{rating1v1}] - ({ratingtg})
 1v1: G={games1v1}, S={streak1v1}, W={wins1v1}, L={losses1v1}, {ratio1v1}%
 TG : G={gamestg}, S={streaktg}, W={winstg}, L={lossestg}, {ratiotg}%"""
 
-ABOUT_STRING = """Afe of Empires II DE
+ABOUT_STRING = """Age of Empires II DE
 In Game Rating Overlay
 Version {version}
 {copyright}
@@ -105,6 +106,74 @@ COLOR_STRINGS = {
     8: 'orange',
 }
 
+# Game Type
+DEATHMATCH = 0
+RANDOMMAP = 1
+EMPIREWARS = 2
+
+GAME_TYPE_STR = {
+    DEATHMATCH: 'Deathmatch',
+    RANDOMMAP: 'Random Map',
+    EMPIREWARS: 'Empire Wars',
+}
+
+LEADERBOARD_ID = {
+    0: ,
+    1: ,
+    2: ,
+    3: ,
+    4: ,
+    5: ,
+    6: ,
+    7: ,
+    8: ,
+    9: ,
+    13: ,
+    14: ,
+}
+
+DEATHMATCH: {'1v1':1 , 'tg':2},
+RANDOMMAP: {'1v1':3 , 'tg':4},
+EMPIREWARS: {'1v1':13 , 'tg':14},
+
+"id": 0,
+"string": "Unranked"
+
+"id": 1,
+"string": "1v1 Death Match"
+
+"id": 2,
+"string": "1v1 Random Map"
+
+"id": 3,
+"string": "Team Death Match"
+
+"id": 4,
+"string": "Team Random Map"
+
+"id": 5,
+"string": "1v1 Random Map Quick Play"
+
+"id": 6,
+"string": "Team Random Map Quick Play"
+
+"id": 7,
+"string": "1v1 Empire Wars Quick Play"
+
+"id": 8,
+"string": "Team Empire Wars Quick Play"
+
+"id": 9,
+"string": "Battle Royale Quick Play"
+
+"id": 13,
+"string": "1v1 Empire Wars"
+
+"id": 14,
+"string": "Team Empire Wars"
+
+
+aoe2api = aoe2netapi.API()
 
 loading_progress = {'steps':1, 'current':0}
 
@@ -147,12 +216,10 @@ class Player():
         if self.name is None:
             self.name = 'IA ' + self.civ
 
-    def fetch_rating_information(self):
-        DebugMsg('[Thread-1] Fetching 1v1 rating information for player {}'.format(self.name), self._debug)
+    def fetch_rating_information(self, game_type):
+        DebugMsg('[Thread-1] Fetching "{}" 1vs1 rating information for player "{}"'.format(GAME_TYPE_STR[game_type], self.name), self._debug)
         if self.profile_id is not None:
-            url = AOE2NET_URL + 'player/ratinghistory?game=aoe2de&leaderboard_id=3&count=1&profile_id={}'.format(self.profile_id)
-            DebugMsg('[Thread-1] Fetching from: {}'.format(url), self._debug)
-            rating_1v1 = requests.get(url).json()
+            rating_1v1 = aoe2api.get_rating_history(leaderboard_id=LEADERBOARD_ID[game_type]['1v1'], count=1, profile_id=self.profile_id)
             if rating_1v1:
                 self.rating_1v1 = Rating(rating_1v1[0])
             else:
@@ -161,11 +228,9 @@ class Player():
             self.rating_1v1 = Rating()
         loading_progress['current'] += 1
 
-        DebugMsg('[Thread-1] Fetching TG rating information for player {}'.format(self.name), self._debug)
+        DebugMsg('[Thread-1] Fetching "{}" TeamGame rating information for player "{}"'.format(GAME_TYPE_STR[game_type], self.name), self._debug)
         if self.profile_id is not None:
-            url = AOE2NET_URL + 'player/ratinghistory?game=aoe2de&leaderboard_id=4&count=1&profile_id={}'.format(self.profile_id)
-            DebugMsg('[Thread-1] Fetching from: {}'.format(url), self._debug)
-            rating_tg = requests.get(url).json()
+            rating_tg = aoe2api.get_rating_history(leaderboard_id=LEADERBOARD_ID[game_type]['tg'], count=1, profile_id=self.profile_id)
             if rating_tg:
                 self.rating_tg = Rating(rating_tg[0])
             else:
@@ -182,7 +247,7 @@ class Match():
         last_match = match['last_match']
 
         self.match_id = last_match['match_uuid']
-        self.game_type = [x['string'] for x in strings['game_type'] if x['id'] == last_match['game_type']].pop()
+        self.game_type = last_match['rating_type']['id']
         self.map_type = [x['string'] for x in strings['map_type'] if x['id'] == last_match['map_type']].pop()
         self.number_of_players = last_match['num_players']
 
@@ -190,7 +255,7 @@ class Match():
 
     def fetch_rating_information(self):
         for player in self.players:
-            player.fetch_rating_information()
+            player.fetch_rating_information(self.game_type)
 
 
 class PlayerInformationPrinter():
@@ -268,13 +333,12 @@ class InGameRatingOverlay():
 
         while not self._finish:
             if self._strings is None:
-                url = AOE2NET_URL + 'strings?game=aoe2de&language=en'
-                DebugMsg('[Thread-0] Fetching from: {}'.format(url), self._debug)
+                DebugMsg('[Thread-0] Fetching game string.', self._debug)
                 try:
                     if number_of_retries != 0:
                         time.sleep(5)
                         DebugMsg('[Thread-0] Number of retries: {}'.format(number_of_retries))   , self._debug 
-                    self._strings = requests.get(url).json()
+                    self._strings = aoe2api.get_strings()
                     self._is_server_ok = True
                 except Exception as error:
                     DebugMsg('[Thread-0] request timeout... retrying...: {}'.format(error), self._debug)
@@ -354,7 +418,7 @@ class InGameRatingOverlay():
                 if self._fetching_data:
                     DebugMsg('[Thread-0] Fetching new data', self._debug)
                 elif not self._is_server_ok:
-                    DebugMsg('[Thread-0] Server if offline', self._debug)
+                    DebugMsg('[Thread-0] Server is offline', self._debug)
                 if self._main_window is not None:
                     self._main_window.close()
                     self._main_window = None
@@ -603,11 +667,9 @@ class InGameRatingOverlay():
                     DebugMsg('[Thread-1] Current user: Name = {name} - Profile ID = {id}'.format(name=user['name'], id=profile_id), self._debug)
 
             # Get Last/Current match.
-            DebugMsg('[Thread-1] Fetching game data...', self._debug)
+            DebugMsg('[Thread-1] Fetching last match information', self._debug)
             try:
-                url = AOE2NET_URL + 'player/lastmatch?game=aoe2de&steam_id={}'.format(profile_id)
-                DebugMsg('[Thread-1] Fetching from: {}'.format(url), self._debug)
-                match_data = requests.get(url).json()
+                last_match = aoe2api.get_last_match(steam_id=profile_id)
                 self._is_server_ok = True
             except Exception as error:
                 DebugMsg('[Thread-1] request timeout... retrying...: {}'.format(error), self._debug)
@@ -615,8 +677,8 @@ class InGameRatingOverlay():
                 self._event_refresh_game_information.wait(self._refresh_time)
                 self._event_refresh_game_information.clear()
                 continue
-            new_match = Match(match_data, self._strings, self._debug)
-            DebugMsg('[Thread-1] Fetching game data done!', self._debug)
+            new_match = Match(last_match, self._strings, self._debug)
+            DebugMsg('[Thread-1] Fetching last match data done!', self._debug)
 
             if (self._current_match is None):
                 DebugMsg('[Thread-1] New match id: {}'.format(new_match.match_id), self._debug)  
@@ -631,7 +693,7 @@ class InGameRatingOverlay():
 
                 DebugMsg('[Thread-1] Fetching rating information...', self._debug)
                 try:
-                    new_match.fetch_rating_information()
+                    new_match.fetch_rating_information(RANDOMMAP)
                     self._is_server_ok = True
                 except Exception as error:
                     DebugMsg('[Thread-1] request timeout... retrying...: {}'.format(error), self._debug)

@@ -111,6 +111,15 @@ Copy and paste it into the configuration file and that's all you need, you can n
 
 ## CHANGELOG
 
+### WIP
+
+* Use aoe2netapi-wrapper library from sixP-NaraKa.
+* Read SteamID from local steam directory.
+* Make main windows moveable and clickable only when press CTRL key.
+* Make full menu available on all windows.
+* Make it work for Empire Wars.
+* Make it work for Death Match.
+
 ### v1.0.0
 
 * Replace the usage of aoe2.net profile ID by Steam ID.

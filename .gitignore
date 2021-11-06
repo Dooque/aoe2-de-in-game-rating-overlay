@@ -1,2 +1,4 @@
 
 *.sublime-workspace
+
+aoe2netapi/__pycache__/
