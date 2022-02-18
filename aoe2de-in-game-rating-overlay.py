@@ -255,6 +255,7 @@ class InGameRatingOverlay():
     def __init__(self):
         self._load_configuration()
         self._check_for_new_version()
+        self._load_users_information()
 
         self._strings = None
         self._is_server_ok = False
@@ -328,7 +329,7 @@ class InGameRatingOverlay():
                 self._loading_information_window_text.update(value='Loading game information: {}%'.format(percentage))
                 self._loading_information_window.refresh()
             else:
-                self._loading_information_window_text.update(value='Waiting for server...')
+                self._loading_information_window_text.update(value='Server not availableN...')
                 self._loading_information_window.refresh()
 
             if self._main_window is not None:
@@ -433,6 +434,20 @@ class InGameRatingOverlay():
         self._update_game_information_thread.join()
         DebugMsg('[Thread-0] update_game_information thread terminated!', self._debug)
 
+    def _load_users_information(self):
+        DebugMsg('[Thread-0] Loading users...', True)
+        #DebugMsg('[Thread-0] Time: {}'.format(), True)
+        self._users = []
+        current = True
+        steam_ids = self._get_local_steam_ids()
+        for steam_id in steam_ids:
+            last_match = aoe2api.get_last_match(steam_id=steam_id)
+            for player in last_match['last_match']['players']:
+                if (player['steam_id'] is not None) and (int(player['steam_id']) == steam_id):
+                    self._users.append({'name':player['name'], 'ID':steam_id, 'current':current})
+                    current = False
+                    break
+
     def _get_local_steam_ids(self):
         """By https://github.com/didierrenardub."""
         steam_ids = []
@@ -482,7 +497,6 @@ class InGameRatingOverlay():
             f = open(CONFIGURATION_FILE)
             conf = json.load(f)
             f.close()
-            self._users = conf['users']
             self._font_type = conf['font-type']
             self._font_size = conf['font-size']
             self._refresh_time = conf['refresh-time']
@@ -517,7 +531,7 @@ class InGameRatingOverlay():
             self._loading_information_window_layout,
             no_titlebar=True,
             keep_on_top=True,
-            grab_anywhere=False,
+            #grab_anywhere=False,
             background_color=BG_COLOR_INVISIBLE,
             transparent_color=BG_COLOR_INVISIBLE,
             alpha_channel=1,
@@ -542,7 +556,8 @@ class InGameRatingOverlay():
             self._main_window_layout,
             no_titlebar=True,
             keep_on_top=True,
-            grab_anywhere=True,
+            #grab_anywhere=True,
+            grab_anywhere_using_control=True,
             background_color=BG_COLOR_INVISIBLE,
             transparent_color=BG_COLOR_INVISIBLE,
             alpha_channel=1,
@@ -557,6 +572,7 @@ class InGameRatingOverlay():
             self._main_window.move(int(c - sx/2.0), int(y))
         self._main_window.refresh()
         DebugMsg('[Thread-0] Main window created!', self._debug)
+        import ipdb; ipdb.set_trace()
 
     def _create_minimized_window(self):
         DebugMsg('[Thread-0] Creating minimized window...', self._debug)
@@ -565,7 +581,7 @@ class InGameRatingOverlay():
             self._minimized_window_layout,
             no_titlebar=True,
             keep_on_top=True,
-            grab_anywhere=True,
+            #grab_anywhere=True,
             background_color=BG_COLOR_INVISIBLE,
             transparent_color=BG_COLOR_INVISIBLE,
             alpha_channel=1,
