@@ -133,7 +133,6 @@ class Player():
     def __init__(self, player, strings, debug):
         self._debug = debug
         self.profile_id = player['profile_id']
-        self.steam_id = player['steam_id']
         self.name = player['name']
         self.number = player['color'] if player['color'] > 0 else player['slot'] 
         self.color_number = player['color'] 
@@ -179,7 +178,6 @@ class Match():
 
     def __init__(self, match, strings, debug):
         self._debug = debug
-        last_match = match['last_match']
 
         self.match_id = last_match['match_uuid']
         self.game_type = [x['string'] for x in strings['game_type'] if x['id'] == last_match['game_type']].pop()
@@ -589,9 +587,10 @@ class InGameRatingOverlay():
             # Get Last/Current match.
             DebugMsg('[Thread-1] Fetching game data...', self._debug)
             try:
-                url = AOE2NET_URL + 'player/lastmatch?game=aoe2de&steam_id={}'.format(profile_id)
+                url = AOE2NET_URL + 'player/matches?game=aoe2de&steam_id={}'.format(profile_id)
                 DebugMsg('[Thread-1] Fetching from: {}'.format(url), self._debug)
                 match_data = requests.get(url).json()
+                match_data = match_data[0]
                 self._is_server_ok = True
             except Exception as error:
                 DebugMsg('[Thread-1] request timeout... retrying...: {}'.format(error), self._debug)
