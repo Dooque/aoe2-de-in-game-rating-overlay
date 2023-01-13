@@ -66,7 +66,7 @@ Civ: {civ} - [{rating1v1}] - ({ratingtg})
 1v1: G={games1v1}, S={streak1v1}, W={wins1v1}, L={losses1v1}, {ratio1v1}%
 TG : G={gamestg}, S={streaktg}, W={winstg}, L={lossestg}, {ratiotg}%"""
 
-ABOUT_STRING = """Afe of Empires II DE
+ABOUT_STRING = """Age of Empires II DE
 In Game Rating Overlay
 Version {version}
 {copyright}
@@ -179,12 +179,12 @@ class Match():
     def __init__(self, match, strings, debug):
         self._debug = debug
 
-        self.match_id = last_match['match_uuid']
-        self.game_type = [x['string'] for x in strings['game_type'] if x['id'] == last_match['game_type']].pop()
-        self.map_type = [x['string'] for x in strings['map_type'] if x['id'] == last_match['map_type']].pop()
-        self.number_of_players = last_match['num_players']
+        self.match_id = match['match_uuid']
+        self.game_type = [x['string'] for x in strings['game_type'] if x['id'] == match['game_type']].pop()
+        self.map_type = [x['string'] for x in strings['map_type'] if x['id'] == match['map_type']].pop()
+        self.number_of_players = match['num_players']
 
-        self.players = [ Player(player, strings, self._debug) for player in last_match['players'] ]
+        self.players = [ Player(player, strings, self._debug) for player in match['players'] ]
 
     def fetch_rating_information(self):
         for player in self.players:
@@ -340,7 +340,7 @@ class InGameRatingOverlay():
                     [[sg.Text(ABOUT_STRING.format(version=CURRENT_VERSION, copyright=COPYRIGHT_TEXT), expand_x=True, background_color='#000000', justification='center', font=('Arial', 10))],],
                     keep_on_top=True,
                     background_color='#000000',
-                    alpha_channel=1,
+                    alpha_channel=1.0,
                     element_justification='center',
                     icon='./res/813780_icon.ico'
                 )
@@ -410,7 +410,7 @@ class InGameRatingOverlay():
                 [[sg.Text('The new version {} is now available for download at\nhttps://github.com/Dooque/aoe2-de-in-game-rating-overlay.'.format(new_version), expand_x=True, background_color='#000000', justification='center', font=('Arial', 10))],],
                 keep_on_top=True,
                 background_color='#000000',
-                alpha_channel=1,
+                alpha_channel=1.0,
                 element_justification='center',
                 icon='./res/813780_icon.ico'
             )
@@ -436,7 +436,7 @@ class InGameRatingOverlay():
                 [[sg.Text('There is a syntax error in the configuration file.', expand_x=True, background_color='#ff0000', justification='center', font=('Arial', 14))],],
                 keep_on_top=True,
                 background_color='#ff0000',
-                alpha_channel=1,
+                alpha_channel=1.0,
                 element_justification='center',
                 icon='./res/813780_icon.ico'
             )
@@ -460,7 +460,7 @@ class InGameRatingOverlay():
             grab_anywhere=False,
             background_color=BG_COLOR_INVISIBLE,
             transparent_color=BG_COLOR_INVISIBLE,
-            alpha_channel=1,
+            alpha_channel=1.0,
             element_justification='center',
             right_click_menu=self._loading_information_window_menu
         )
@@ -485,7 +485,7 @@ class InGameRatingOverlay():
             grab_anywhere=True,
             background_color=BG_COLOR_INVISIBLE,
             transparent_color=BG_COLOR_INVISIBLE,
-            alpha_channel=1,
+            alpha_channel=1.0,
             element_justification='center',
             right_click_menu=self._main_window_menu,
             icon='./res/813780_icon.ico'
@@ -508,7 +508,7 @@ class InGameRatingOverlay():
             grab_anywhere=True,
             background_color=BG_COLOR_INVISIBLE,
             transparent_color=BG_COLOR_INVISIBLE,
-            alpha_channel=1,
+            alpha_channel=1.0,
             element_justification='center',
             right_click_menu=self._minimized_window_menu
         )
