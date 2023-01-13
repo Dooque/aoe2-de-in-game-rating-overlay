@@ -1,11 +1,11 @@
 {
 	"users": [
-		{"name":"Dooque", "ID":76561198982469653, "current":1},
-		{"name":"Mendieta", "ID":76561199099265930, "current":0},
-		{"name":"MentaPeperina", "ID":76561199203185042, "current":0}
+		{"name":"DS_Dooque", "ID":76561198982469653, "current":1},
+		{"name":"DS_El_Duki_Del_Biry", "ID":76561199099265930, "current":0},
+		{"name":"Rasputin", "ID":76561199203185042, "current":0}
 	],
 	"font-type":"Arial",
-	"font-size":10,
+	"font-size":18,
 	"refresh-time":10,
 	"debug":true
 }

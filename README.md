@@ -6,7 +6,7 @@ Join discussion on [Discord](https://discord.gg/5Ke9Fa5G5x)
 
 ## Download
 
-You can download the latest release from [here](https://github.com/Dooque/aoe2-de-in-game-rating-overlay/archive/refs/tags/v1.0.0.zip).
+You can download the latest release from [here](https://github.com/Dooque/aoe2-de-in-game-rating-overlay/archive/refs/tags/v1.0.1.zip).
 
 ## Introduction
 
@@ -109,6 +109,10 @@ Copy and paste it into the configuration file and that's all you need, you can n
 2. If you have an extra monitor connected to the PC, and you display the application on that screen, and the you disconnect the monitor the application will still be display in the position of the previous screen, so you are not going to see the application. WORKAROUND: Delete the file `C:\Users\USER\aoe2de_in_game_rating_overlay-window_location.txt`.
 
 ## CHANGELOG
+
+### v1.0.1
+
+* Fixed issue due to changed in aoe2.net API.
 
 ### v1.0.0
 
