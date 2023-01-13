@@ -6,7 +6,7 @@ Join discussion on [Discord](https://discord.gg/5Ke9Fa5G5x)
 
 ## Download
 
-You can download the latest release from [here](https://github.com/Dooque/aoe2-de-in-game-rating-overlay/archive/refs/tags/v1.0.0.zip).
+You can download the latest release from [here](https://github.com/Dooque/aoe2-de-in-game-rating-overlay/archive/refs/tags/v1.0.1.zip).
 
 ## Introduction
 
@@ -119,6 +119,10 @@ Copy and paste it into the configuration file and that's all you need, you can n
 * Make full menu available on all windows.
 * Make it work for Empire Wars.
 * Make it work for Death Match.
+
+### v1.0.1
+
+* Fixed issue due to changed in aoe2.net API.
 
 ### v1.0.0
 

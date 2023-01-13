@@ -6,7 +6,7 @@
 
 ## Descargar
 
-Puedes descargar la última versión desde [aquí](https://github.com/Dooque/aoe2-de-in-game-rating-overlay/archive/refs/tags/v1.0.0.zip).
+Puedes descargar la última versión desde [aquí](https://github.com/Dooque/aoe2-de-in-game-rating-overlay/archive/refs/tags/v1.0.1.zip).
 
 ## Introducción
 
@@ -110,6 +110,10 @@ Copia y pega el número en el archvio de configuración y eso es todo, ahora ya 
 3. La aplicación se queda en el estado "Waiting for server" si el jugador seleccionado no tiene nungún juego en el modo de multijugador.
 
 ## HISTORIAL DE CAMBIOS
+
+### v1.0.1
+
+* Se corrige error debido a cambios en la API de aoe2.net.
 
 ### v1.0.0
 

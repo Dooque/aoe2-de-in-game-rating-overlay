@@ -1,3 +1,5 @@
-PySimpleGUI
+PySimpleGUI==4.60.4
 pysimplegui-exemaker
+charset_normalizer
+chardet
 requests
