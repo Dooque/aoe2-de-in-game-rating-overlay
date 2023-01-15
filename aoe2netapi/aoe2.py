@@ -21,7 +21,7 @@ NIGHTBOT_BASE_URL = API_BASE_URL + "/nightbot"  # "https://aoe2.net/api/nightbot
 STRINGS_URL = API_BASE_URL + "/strings"
 LEADERBOARD_URL = API_BASE_URL + "/leaderboard"
 LOBBIES_URL = API_BASE_URL + "/lobbies"
-LAST_MATCH_URL = API_BASE_URL + "/player/lastmatch"
+#LAST_MATCH_URL = API_BASE_URL + "/player/lastmatch"
 MATCH_HISTORY_URL = API_BASE_URL + "/player/matches"
 RATING_HISTORY_URL = API_BASE_URL + "/player/ratinghistory"
 MATCHES_URL = API_BASE_URL + "/matches"
@@ -261,8 +261,8 @@ class API:
         if not steam_id and not profile_id:
             raise Aoe2NetException("Either 'steam_id' or 'profile_id' required.")
 
-        params = {"steam_id": steam_id, "profile_id": profile_id}
-        return _get_request_response(url=LAST_MATCH_URL, params=params, json=json)
+        params = {"steam_id": steam_id, "profile_id": profile_id, "count": 1}
+        return _get_request_response(url=MATCH_HISTORY_URL, params=params, json=json)[0]
 
     def get_match_history(self, start: int = 0, count: int = 5, steam_id: str = "", profile_id: str = "", json: bool = True):
         """

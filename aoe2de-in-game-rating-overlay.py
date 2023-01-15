@@ -440,7 +440,7 @@ class InGameRatingOverlay():
         steam_ids = self._get_local_steam_ids()
         for steam_id in steam_ids:
             last_match = aoe2api.get_last_match(steam_id=steam_id)
-            for player in last_match['last_match']['players']:
+            for player in last_match['players']:
                 if (player['steam_id'] is not None) and (int(player['steam_id']) == steam_id):
                     self._users.append({'name':player['name'], 'ID':steam_id, 'current':current})
                     current = False
