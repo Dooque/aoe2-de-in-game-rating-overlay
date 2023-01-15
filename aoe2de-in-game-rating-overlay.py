@@ -455,7 +455,7 @@ class InGameRatingOverlay():
         self._loading_information_window = sg.Window(
             None,
             self._loading_information_window_layout,
-            no_titlebar=True,
+            no_titlebar=False,
             keep_on_top=True,
             grab_anywhere=False,
             background_color=BG_COLOR_INVISIBLE,
@@ -478,9 +478,9 @@ class InGameRatingOverlay():
         DebugMsg('[Thread-0] Creating main window...', self._debug)
         self._update_main_window_layout()
         self._main_window = sg.Window(
-            None,
+            "Rating",
             self._main_window_layout,
-            no_titlebar=True,
+            no_titlebar=False,
             keep_on_top=True,
             grab_anywhere=True,
             background_color=BG_COLOR_INVISIBLE,
@@ -503,7 +503,7 @@ class InGameRatingOverlay():
         self._minimized_window = sg.Window(
             None,
             self._minimized_window_layout,
-            no_titlebar=True,
+            no_titlebar=False,
             keep_on_top=True,
             grab_anywhere=True,
             background_color=BG_COLOR_INVISIBLE,

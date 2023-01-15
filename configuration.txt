@@ -5,7 +5,7 @@
 		{"name":"Rasputin", "ID":76561199203185042, "current":0}
 	],
 	"font-type":"Arial",
-	"font-size":18,
+	"font-size":16,
 	"refresh-time":10,
 	"debug":true
 }
