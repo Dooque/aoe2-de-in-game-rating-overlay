@@ -1,4 +1,6 @@
-# Age of Empires II DE - In Game Rating Overlay
+# [DEPRECATED] Age of Empires II DE - In Game Rating Overlay
+
+> IMPORTANT: This application uses the aoe2.net API, since the site was shutdown the application doesn't work anymore!
 
 [English](./README.md) | [Español](./README.es.md)
 
